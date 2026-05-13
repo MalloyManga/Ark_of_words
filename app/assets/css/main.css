@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: Fredoka;
+  src: url("@/assets/fonts/Fredoka-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-fredoka: Fredoka, sans-serif;
+}
+
+@layer base {
+  img,
+  svg,
+  canvas,
+  picture {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
