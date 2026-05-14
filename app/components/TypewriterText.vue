@@ -117,7 +117,7 @@ onBeforeUnmount(clearTypewriterTimer)
 
 @keyframes caret {
     50% {
-        border-color: transparent;
+        opacity: 0;
     }
 }
 
