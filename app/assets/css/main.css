@@ -8,8 +8,17 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: ZCOOLKuaiLe;
+  src: url("@/assets/fonts/ZCOOLKuaiLe-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 @theme {
   --font-fredoka: Fredoka, sans-serif;
+  --font-zh-playful: ZCOOLKuaiLe, sans-serif;
 }
 
 @layer base {

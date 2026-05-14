@@ -85,7 +85,7 @@ onBeforeUnmount(clearTypewriterTimer)
 
 <template>
     <div class="max-w-[min(86vw,680px)] text-right">
-        <p class="select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-700">
+        <p class="font-zh-playful select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-700">
             <span class="inline-block rounded-full bg-white/85 px-3 py-1 shadow-[3px_3px_0_#86efac]">
                 {{ activeLineInfo.label }}
             </span>
