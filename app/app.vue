@@ -13,6 +13,12 @@ const practiceStats: PracticeStats = {
     operatorCount: 312,
 }
 
+const heroIntro = {
+    topic: '日语听写 / 假名输入 / 干员语音',
+    title: 'Ark_of_words',
+    description: '听见熟悉的语音，敲下日语台词。把听写练习做成一张轻快的小课桌，而不是一份冷冰冰的试卷。',
+} as const
+
 const typewriterLines = [
     { label: '作战中3', text: 'はいはい、焦らなくていいわよ、全員分あるから' },
     { label: '戳一下', text: 'そんなに死にたいの' },
@@ -28,19 +34,9 @@ const typewriterLines = [
             <div
                 class="relative mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
                 <div class="relative z-10 py-8">
-                    <div
-                        class="font-zh-playful inline-flex rounded-full border-2 border-emerald-900 bg-[#ddffe8] px-5 py-2 text-sm font-black text-emerald-900 shadow-[5px_5px_0_#064e3b]">
-                        日语听写 / 假名输入 / 干员语音
-                    </div>
+                    <HeroTopicBadge :text="heroIntro.topic" />
 
-                    <h1
-                        class="font-fredoka mt-7 max-w-2xl text-5xl font-black leading-[0.95] tracking-normal text-emerald-950 sm:text-6xl lg:text-7xl">
-                        Ark_of_words
-                    </h1>
-
-                    <p class="font-zh-playful mt-6 max-w-xl text-lg font-medium leading-8 text-emerald-900 sm:text-xl">
-                        听见熟悉的语音，敲下日语台词。把听写练习做成一张轻快的小课桌，而不是一份冷冰冰的试卷。
-                    </p>
+                    <HeroIntro :description="heroIntro.description" :title="heroIntro.title" />
 
                     <div class="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
                         <AppButton class="font-zh-playful">
@@ -66,8 +62,8 @@ const typewriterLines = [
                     <div class="absolute right-4 top-[70%] sm:right-8">
                         <TypewriterText :lines="typewriterLines" />
                     </div>
-
                 </div>
+
             </div>
         </section>
     </main>
