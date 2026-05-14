@@ -1,104 +1,117 @@
 <script setup lang="ts">
-interface TypewriterInfo {
+interface TypewriterLineInfo {
     label: string
     text: string
 }
 
 interface TypewriterTextProps {
-    lines: readonly TypewriterInfo[]
+    lines: readonly TypewriterLineInfo[]
 }
 
 const { lines } = defineProps<TypewriterTextProps>()
-const lineIndex = ref(0)
-const displayCharCount = ref(0)
-const isDeleting = ref(false)
+const activeLineIndex = ref(0)
+const visibleCharacterCount = ref(0)
+const isDeletingCurrentLine = ref(false)
 
 const TYPE_SPEED_MS = 90
 const DELETE_SPEED_MS = 45
-const DELETE_INTERVAL_MS = 1200
-const TEXT_INTERVAL_MS = 360
+const HOLD_AFTER_TYPED_MS = 1200
+const HOLD_BEFORE_NEXT_LINE_MS = 360
 
-let timer: ReturnType<typeof setTimeout> | undefined
-const fallbackLine: TypewriterInfo = {
+let typewriterTimer: ReturnType<typeof setTimeout> | undefined
+const fallbackLine: TypewriterLineInfo = {
     label: '',
     text: '',
 }
 
-const currentLineInfo = computed(() => lines[lineIndex.value] ?? lines[0] ?? fallbackLine)
-// 使用 Array.from 按字符切分  避免日文和特殊符号被 UTF-16 下标截断
-const currentCharacters = computed(() => Array.from(currentLineInfo.value.text))
-const displayedText = computed(() => currentCharacters.value.slice(0, displayCharCount.value).join(''))
+const activeLineInfo = computed(() => lines[activeLineIndex.value] ?? lines[0] ?? fallbackLine)
 
-const clearTimer = () => {
-    if (timer) {
-        clearTimeout(timer)
-        timer = undefined
+// 使用 Array.from 按用户能看到的字符切分
+const activeLineCharacters = computed(() => Array.from(activeLineInfo.value.text))
+const visibleText = computed(() => activeLineCharacters.value.slice(0, visibleCharacterCount.value).join(''))
+
+const clearTypewriterTimer = () => {
+    if (typewriterTimer) {
+        clearTimeout(typewriterTimer)
+        typewriterTimer = undefined
     }
 }
-const queueStep = (delay: number) => {
-    clearTimer()
-    timer = setTimeout(runStep, delay)
+const queueNextTypewriterStep = (delay: number) => {
+    clearTypewriterTimer()
+    typewriterTimer = setTimeout(runTypewriterStep, delay)
 }
-// 小型状态机  输入完成后停留 TEXT_INTERVAL_MS  再删除并切到下一句
-const runStep = () => {
-    const textLength = currentCharacters.value.length
+// typeWeiter 状态机
+// 1 输入当前台词  每次增加一个可见字符
+// 2 整句显示后停留一小段时间
+// 3 删除当前台词  每次减少一个可见字符
+// 4 删除完成后切换到下一句  然后重新开始输入
+const runTypewriterStep = () => {
+    const activeLineLength = activeLineCharacters.value.length
 
-    if (isDeleting.value) {
+    if (isDeletingCurrentLine.value) {
         // 删除阶段
-        if (displayCharCount.value > 0) {
-            displayCharCount.value -= 1
-            queueStep(DELETE_SPEED_MS)
+        if (visibleCharacterCount.value > 0) {
+            visibleCharacterCount.value -= 1
+            queueNextTypewriterStep(DELETE_SPEED_MS)
             return
         }
         else {
-            isDeleting.value = false
-            lineIndex.value = (lineIndex.value + 1) % lines.length
-            queueStep(TEXT_INTERVAL_MS)
+            isDeletingCurrentLine.value = false
+            activeLineIndex.value = (activeLineIndex.value + 1) % lines.length
+            queueNextTypewriterStep(HOLD_BEFORE_NEXT_LINE_MS)
             return
         }
     }
-    else if (displayCharCount.value < textLength) {
+    else if (visibleCharacterCount.value < activeLineLength) {
         // 输入阶段
-        displayCharCount.value += 1
-        queueStep(TYPE_SPEED_MS)
+        visibleCharacterCount.value += 1
+        queueNextTypewriterStep(TYPE_SPEED_MS)
         return
     }
 
-    // 初始化挂载阶段 后续不走这里
-    isDeleting.value = true
-    queueStep(DELETE_INTERVAL_MS)
+    // 初始阶段 后续不走这里
+    isDeletingCurrentLine.value = true
+    queueNextTypewriterStep(HOLD_AFTER_TYPED_MS)
 }
 
 onMounted(() => {
     if (lines.length > 0) {
-        queueStep(TEXT_INTERVAL_MS)
+        queueNextTypewriterStep(HOLD_BEFORE_NEXT_LINE_MS)
     }
 })
 
-onBeforeUnmount(clearTimer)
+onBeforeUnmount(clearTypewriterTimer)
 </script>
 
 <template>
-    <div class="max-w-[min(86vw,440px)] text-right">
-        <p
-            class="select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-700 drop-shadow-[2px_2px_0_#ffffff]">
-            {{ currentLineInfo.label }}
+    <div class="max-w-[min(86vw,680px)] text-right">
+        <p class="select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-700">
+            <span class="inline-block rounded-full bg-white/85 px-3 py-1 shadow-[3px_3px_0_#86efac]">
+                {{ activeLineInfo.label }}
+            </span>
         </p>
-        <div class="mt-2 min-h-32 sm:min-h-30">
+        <div class="mt-3 flex justify-end">
             <span
-                class="typewriter text-3xl font-black tracking-normal text-emerald-950 drop-shadow-[3px_3px_0_#ffffff] sm:text-4xl">
-                {{ displayedText }}
+                class="typewriter-bubble inline-block max-w-full rounded-2xl bg-white/88 px-3 py-1 text-left text-3xl font-black leading-[1.35] tracking-normal text-emerald-950 shadow-[4px_4px_0_#86efac] ring-2 ring-white/90 sm:text-4xl">
+                <span>{{ visibleText }}</span><span class="typewriter-caret" aria-hidden="true" />
             </span>
         </div>
     </div>
 </template>
 
 <style scoped>
-.typewriter {
-    display: inline;
-    overflow-wrap: anywhere;
-    line-break: anywhere;
-    border-right: 0.12em solid #10b981;
+.typewriter-bubble {
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.typewriter-caret {
+    display: inline-block;
+    width: 0.12em;
+    height: 0.95em;
+    margin-left: 0.08em;
+    background-color: #10b981;
+    vertical-align: -0.08em;
     animation: caret 0.8s step-end infinite;
 }
 
@@ -109,7 +122,7 @@ onBeforeUnmount(clearTimer)
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .typewriter {
+    .typewriter-caret {
         animation: none;
     }
 }

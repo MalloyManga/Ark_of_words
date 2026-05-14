@@ -38,6 +38,8 @@ Build the first UI-only homepage prototype for Ark_of_words so the project can r
   - Use a state-machine data structure with animation id, frame count, fps, loop, interrupt rules, and return state.
   - Preferred implementation direction is Canvas or CSS-rendered spritesheets/frame sheets with horizontal flip for left movement, not raw WebM as the primary interactive format.
   - GIF can be used as a preview/reference asset, but is not preferred for final interactive control because frame timing, direction flipping, pausing, and state transitions are less precise.
+  - First implementation should start with GIF assets for short animations to verify visual feel quickly, then switch only if stutter, timing control, or transition quality becomes a real problem.
+  - Long animations such as `special` should not be forced into one extremely long spritesheet in the first pass; split resources or video-like formats can be reconsidered when implementation starts.
 - Split the homepage into small Vue components instead of keeping all UI inside `app.vue`:
   - reusable app button
   - practice stats card
