@@ -30,9 +30,8 @@ const typewriterLines = [
     <main class="min-h-screen overflow-hidden bg-[#effcf2] text-emerald-950">
         <NuxtRouteAnnouncer />
 
-        <section class="relative min-h-screen px-5 py-6 sm:px-8 lg:px-10">
-            <div
-                class="relative mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <section class="relative min-h-[calc(100vh-16px)] px-5 py-6 sm:px-8 lg:px-10">
+            <div class="relative mx-auto grid h-full w-full max-w-7xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
                 <div class="relative z-10 py-8">
                     <HeroTopicBadge :text="heroIntro.topic" />
 
@@ -66,5 +65,9 @@ const typewriterLines = [
 
             </div>
         </section>
+        <div class="px-5 sm:px-8 lg:px-10">
+            <div class="mx-auto h-1 w-full max-w-7xl overflow-hidden rounded-full bg-emerald-900/20" />
+        </div>
+        <SiteFooter />
     </main>
 </template>
