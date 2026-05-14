@@ -5,21 +5,28 @@ import Github from './icon/Github.vue'
 interface FooterLink {
     label: string
     description?: string
-    icon: Component
-    href: string
+    icon?: Component
+    iconText?: string
+    to: string
 }
 
 const footerLinks: readonly FooterLink[] = [
     {
         label: 'B站',
         icon: Bilibili,
-        href: '#',
+        to: '#',
     },
     {
         label: 'GitHub 开源',
         description: '源码 MIT',
         icon: Github,
-        href: 'https://github.com/MalloyManga/Ark_of_words',
+        to: 'https://github.com/MalloyManga/Ark_of_words',
+    },
+    {
+        label: 'PRTS Wiki',
+        description: '资料来源参考',
+        iconText: 'PRTS',
+        to: 'https://prts.wiki/',
     },
 ]
 </script>
@@ -40,11 +47,13 @@ const footerLinks: readonly FooterLink[] = [
             </div>
 
             <nav class="flex flex-col gap-3 sm:flex-row" aria-label="项目相关链接">
-                <a v-for="link in footerLinks" :key="link.label" :href="link.href"
+                <NuxtLink v-for="link in footerLinks" :key="link.label" :to="link.to" target="_blank"
+                    rel="noopener noreferrer"
                     class="group flex items-center gap-3 rounded-3xl border-2 border-emerald-950 bg-white px-4 py-3 text-emerald-950 shadow-[5px_5px_0_#86efac] transition-all duration-150 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[3px_3px_0_#86efac] active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0_#86efac]">
                     <span
                         class="font-fredoka flex size-8 shrink-0 items-center justify-center rounded-2xl text-sm font-black text-emerald-950">
-                        <component :is="link.icon" />
+                        <component :is="link.icon" v-if="link.icon" />
+                        <span v-else>{{ link.iconText }}</span>
                     </span>
                     <span>
                         <span class="font-zh-playful block text-sm font-black">
@@ -54,7 +63,7 @@ const footerLinks: readonly FooterLink[] = [
                             {{ link.description }}
                         </span>
                     </span>
-                </a>
+                </NuxtLink>
             </nav>
         </div>
     </footer>
