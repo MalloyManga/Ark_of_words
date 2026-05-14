@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import wisadelImage from './assets/imgs/Wiš\'adel.png'
-import AppButton from './components/AppButton.vue'
-import FreeConfigCard from './components/FreeConfigCard.vue'
-import PracticeStatsCard from './components/PracticeStatsCard.vue'
 
 interface PracticeStats {
     bestCombo: number
@@ -15,6 +12,12 @@ const practiceStats: PracticeStats = {
     todayProgress: 68,
     operatorCount: 312,
 }
+
+const typewriterLines = [
+    { label: '作战中3', text: 'はいはい、焦らなくていいわよ、全員分あるから' },
+    { label: '戳一下', text: 'そんなに死にたいの' },
+    { label: '行动出发', text: '楽しい時間って、ほんとに終わらないわよねぇ' },
+] as const
 </script>
 
 <template>
@@ -60,16 +63,8 @@ const practiceStats: PracticeStats = {
                             :src="wisadelImage" alt="Wiš'adel character artwork" draggable="false">
                     </div>
 
-                    <div
-                        class="absolute right-4 top-[70%] max-w-[min(86vw,420px)] rounded-4xl border-2 border-emerald-950 bg-white px-6 py-5 shadow-[9px_9px_0_#34d399] sm:right-8">
-                        <p class="select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-600">
-                            作战中3
-                        </p>
-                        <div class="mt-2 min-h-11">
-                            <span class="typewriter text-3xl font-black tracking-normal text-emerald-950 sm:text-4xl">
-                                全員分あるから
-                            </span>
-                        </div>
+                    <div class="absolute right-4 top-[70%] sm:right-8">
+                        <TypewriterText :lines="typewriterLines" />
                     </div>
 
                 </div>
@@ -77,47 +72,3 @@ const practiceStats: PracticeStats = {
         </section>
     </main>
 </template>
-
-<style scoped>
-.typewriter {
-    display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    border-right: 0.12em solid #10b981;
-    animation:
-        typewriter-loop 4.8s steps(12, end) infinite,
-        caret 0.8s step-end infinite;
-}
-
-@keyframes typewriter-loop {
-
-    0%,
-    12% {
-        width: 0;
-    }
-
-    42%,
-    62% {
-        width: 12.5ch;
-    }
-
-    92%,
-    100% {
-        width: 0;
-    }
-}
-
-@keyframes caret {
-    50% {
-        border-color: transparent;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .typewriter {
-        width: auto;
-        animation: none;
-    }
-}
-</style>

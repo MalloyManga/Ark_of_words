@@ -29,6 +29,15 @@ Build the first UI-only homepage prototype for Ark_of_words so the project can r
   - No real PRTS fetching.
   - No real mock data rendering required yet.
   - Practice stats can be static placeholders for now; future persistence should use `localStorage` for single-device progress before considering account/token-based sync.
+- Mascot animation is backlog-only for this pass and must not be implemented in the homepage prototype yet.
+- Future mascot animation state plan:
+  - `move`: 0.9333333373069763s, 28 frames at 30 FPS, looped while chasing the cursor horizontally.
+  - `interact`: 2.2666666507720947s, 68 frames at 30 FPS, one-shot after clicking the mascot, then return to idle.
+  - `special`: 12.166666984558105s, 365 frames at 30 FPS, one-shot after long mouse inactivity, then return to idle.
+  - `overload`: 1.399999976158142s, 42 frames at 30 FPS, one-shot after too many rapid clicks, then return to idle.
+  - Use a state-machine data structure with animation id, frame count, fps, loop, interrupt rules, and return state.
+  - Preferred implementation direction is Canvas or CSS-rendered spritesheets/frame sheets with horizontal flip for left movement, not raw WebM as the primary interactive format.
+  - GIF can be used as a preview/reference asset, but is not preferred for final interactive control because frame timing, direction flipping, pausing, and state transitions are less precise.
 - Split the homepage into small Vue components instead of keeping all UI inside `app.vue`:
   - reusable app button
   - practice stats card
