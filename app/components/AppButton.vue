@@ -6,9 +6,11 @@ interface AppButtonProps {
     variant?: ButtonVariant
     width?: ButtonWidth
     type?: 'button' | 'submit' | 'reset'
+    to?: string
+    ariaLabel?: string
 }
 
-const { variant = 'primary', width = 'wide', type = 'button' } = defineProps<AppButtonProps>()
+const { variant = 'primary', width = 'wide', type = 'button', to, ariaLabel } = defineProps<AppButtonProps>()
 
 const variantClasses: Record<ButtonVariant, string> = {
     primary:
@@ -21,12 +23,23 @@ const widthClasses: Record<ButtonWidth, string> = {
     wide: 'sm:w-64',
     compact: 'sm:w-42',
 }
+
+const baseClasses =
+    'inline-flex h-15 w-full cursor-pointer items-center justify-center rounded-3xl border-2 px-10 text-lg font-black transition-all duration-150 hover:translate-x-1 hover:translate-y-1 active:translate-x-2 active:translate-y-2 focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald-600'
+
+const buttonClasses = computed(() => [
+    baseClasses,
+    variantClasses[variant],
+    widthClasses[width],
+    variant === 'secondary' ? 'px-7' : '',
+])
 </script>
 
 <template>
-    <button :type="type"
-        class="h-15 w-full cursor-pointer rounded-3xl border-2 px-10 text-lg font-black transition-all duration-150 hover:translate-x-1 hover:translate-y-1 active:translate-x-2 active:translate-y-2 focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
-        :class="[variantClasses[variant], widthClasses[width], variant === 'secondary' ? 'px-7' : '']">
+    <NuxtLink v-if="to" :to="to" :aria-label="ariaLabel" :class="buttonClasses">
+        <slot />
+    </NuxtLink>
+    <button v-else :type="type" :aria-label="ariaLabel" :class="buttonClasses">
         <slot />
     </button>
 </template>
