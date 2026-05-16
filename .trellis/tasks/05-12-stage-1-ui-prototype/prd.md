@@ -98,4 +98,5 @@ Build the first UI-only homepage prototype for Ark_of_words so the project can r
 
 ## Backlog
 
-- Adjust practice-session character status colors after the final character-level typing state model is settled.
+- PRTS wiki API sample JSON still needs to be fetched into `app/data` once network access is available.
+- `kanaHint` is a future derived field and should not be hard-coded as spaced kana strings in the final typing model.
