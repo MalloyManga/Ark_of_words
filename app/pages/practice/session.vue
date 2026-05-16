@@ -20,7 +20,7 @@ interface TargetSegment {
 interface DisplayCharacter {
     value: string
     status: CharacterStatus
-    isCursorBefore: boolean
+    isCursorBefore: boolean // 用于显示当前的模拟光标
 }
 
 const route = useRoute()
@@ -28,6 +28,7 @@ const route = useRoute()
 const inputReceiverRef = useTemplateRef<HTMLInputElement>('inputReceiverRef')
 
 const targetSegments: readonly TargetSegment[] = [
+    { text: '空', kana: 'そら' },
     { text: '青い', kana: 'あおい' },
     { text: '海', kana: 'うみ' },
 ]
@@ -66,27 +67,26 @@ const toolActions: readonly ToolAction[] = [
     { label: '设置', iconText: '⚙' },
 ]
 
+// 规范化传入的难度系数 得到规范的难度 detail
 const isPracticeDifficulty = (value: unknown): value is PracticeDifficulty => {
     return typeof value === 'string' && value in difficultyDetails
 }
-
 const selectedDifficulty = computed<PracticeDifficulty>(() => {
     const difficultyQuery = route.query.difficulty
     const difficultyValue = Array.isArray(difficultyQuery) ? difficultyQuery[0] : difficultyQuery
-
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
-
 const selectedDifficultyDetail = computed(() => difficultyDetails[selectedDifficulty.value])
+
 const kanaHint = computed(() => targetSegments.map((segment) => segment.kana).join('　　'))
 
+// backlog 待后续结合正确 预览 错误状态统一调整配色方案
 const displayCharacterTextClasses: Record<CharacterStatus, string> = {
     pending: 'text-[#2563eb]',
     preview: 'text-[#2563eb]',
     correct: 'text-[#1d4ed8]',
     wrong: 'text-[#ef4444]',
 }
-
 const getDisplayCharacterTextClass = (status: CharacterStatus) => displayCharacterTextClasses[status]
 
 /**
@@ -97,37 +97,34 @@ const getDisplayCharacterTextClass = (status: CharacterStatus) => displayCharact
 const countTextCharacters = (text: string) => Array.from(text).length
 
 /**
- * 找到当前需要处理的片段
- * 只有片段文本完全正确时才进入下一个片段
- * 如果用户确认了错误文本 光标会停在这个片段内部等待回退或重新输入
+ * 寻找已经完成且正确的片段的下一个片段的 index
+ * 全部完成返回 length
+ * 提交了错误的片段 则保持在当前 index
  */
 const activeSegmentIndex = computed(() => {
     const unfinishedSegmentIndex = targetSegments.findIndex((segment, segmentIndex) => {
         return confirmedSegmentTexts.value[segmentIndex] !== segment.text
     })
-
     return unfinishedSegmentIndex === -1 ? targetSegments.length : unfinishedSegmentIndex
 })
-
 const activeSegment = computed<TargetSegment | undefined>(() => targetSegments[activeSegmentIndex.value])
-
 /**
- * 原文光标只模拟已经按 Enter 提交过的文本
- * 输入法正在组合或待确认时不参与原文检测
- * 这样页面不会同时出现 待确认 和 原文判定 两套状态
+ * 模拟光标 index
  */
 const simulatedCursorCharacterIndex = computed(() => {
     let cursorCharacterIndex = 0
-
+    console.log(confirmedSegmentTexts.value)
     targetSegments.some((segment, segmentIndex) => {
         const submittedText = confirmedSegmentTexts.value[segmentIndex]
-        const isCurrentSegment = segmentIndex === activeSegmentIndex.value
+        const isActiveSegment = segmentIndex === activeSegmentIndex.value
 
-        if (isCurrentSegment) {
-            cursorCharacterIndex += Math.min(countTextCharacters(submittedText || ''), countTextCharacters(segment.text))
+        if (isActiveSegment) {
+            // cursorCharacterIndex += Math.min(countTextCharacters(submittedText || ''), countTextCharacters(segment.text))
+            cursorCharacterIndex += countTextCharacters(submittedText || '')
             return true
         }
 
+        // 跳过 已经提交过的且正确的的 seg 直接到 activeSeg
         if (submittedText) {
             cursorCharacterIndex += Math.min(countTextCharacters(submittedText), countTextCharacters(segment.text))
             return false
@@ -138,15 +135,16 @@ const simulatedCursorCharacterIndex = computed(() => {
 
     return cursorCharacterIndex
 })
-
 const displayCharacters = computed<DisplayCharacter[]>(() => {
     const characters: DisplayCharacter[] = []
     let currentCharacterIndex = 0
 
     targetSegments.forEach((segment, segmentIndex) => {
+        // 拆分 targetSegments 和 confirmedSegmentTexts 当中的片段并逐 char 比较
         const submittedText = confirmedSegmentTexts.value[segmentIndex] || ''
         const submittedCharacters = Array.from(submittedText)
 
+        // 逐 char 对比
         Array.from(segment.text).forEach((character, characterIndex) => {
             const submittedCharacter = submittedCharacters[characterIndex]
             let status: CharacterStatus = 'pending'
@@ -154,7 +152,6 @@ const displayCharacters = computed<DisplayCharacter[]>(() => {
             if (submittedCharacter) {
                 status = submittedCharacter === character ? 'preview' : 'wrong'
             }
-
             if (submittedText === segment.text) {
                 status = 'correct'
             }
@@ -170,7 +167,6 @@ const displayCharacters = computed<DisplayCharacter[]>(() => {
 
     return characters
 })
-
 const isCursorAfterAllCharacters = computed(() => {
     const targetTextCharacterCount = targetSegments.reduce((characterCount, segment) => {
         return characterCount + countTextCharacters(segment.text)
@@ -182,15 +178,12 @@ const isCursorAfterAllCharacters = computed(() => {
 const focusInputReceiver = () => {
     inputReceiverRef.value?.focus()
 }
-
 const clearInputReceiverValue = () => {
     if (!inputReceiverRef.value) {
         return
     }
-
     inputReceiverRef.value.value = ''
 }
-
 const syncPendingInputElementValue = (inputElement: HTMLInputElement) => {
     pendingInputText.value = inputElement.value
 }
@@ -203,11 +196,9 @@ const syncPendingInputElementValue = (inputElement: HTMLInputElement) => {
  */
 const syncPendingInputText = (event: Event) => {
     const inputElement = event.target
-
     if (!(inputElement instanceof HTMLInputElement)) {
         return
     }
-
     syncPendingInputElementValue(inputElement)
 }
 
@@ -239,10 +230,13 @@ const confirmPendingInput = () => {
         return
     }
 
+    // 将确认的 inputText 追加到 nextConfirmedSegmentTexts 的对应位置
+    // 之后更新 confirmedSegmentTexts.value
     const nextConfirmedSegmentTexts = [...confirmedSegmentTexts.value]
     nextConfirmedSegmentTexts[activeSegmentIndex.value] = pendingInputText.value
-
     confirmedSegmentTexts.value = nextConfirmedSegmentTexts.slice(0, activeSegmentIndex.value + 1)
+
+    // 重置 pendingInputText 待确认文本
     pendingInputText.value = ''
     clearInputReceiverValue()
     nextTick(focusInputReceiver)
@@ -255,6 +249,7 @@ const confirmPendingInput = () => {
  * 若后续浏览器又派发了一次普通 Enter keydown confirmPendingInput 会因文本已清空而直接跳过
  */
 const confirmPendingInputAfterCompositionCommit = () => {
+    console.log(333)
     if (compositionCommitSubmitTimer !== undefined) {
         window.clearTimeout(compositionCommitSubmitTimer)
     }
@@ -294,11 +289,9 @@ const rollbackConfirmedSegment = () => {
 const handleCompositionStart = () => {
     isComposingText.value = true
 }
-
 const handleCompositionUpdate = (event: CompositionEvent) => {
     syncPendingCompositionText(event)
 }
-
 const handleCompositionEnd = (event: CompositionEvent) => {
     isComposingText.value = false
     syncPendingInputText(event)
@@ -330,18 +323,6 @@ const handleInputKeydown = (event: KeyboardEvent) => {
 
     event.preventDefault()
     confirmPendingInput()
-}
-
-const clearPracticeInput = () => {
-    confirmedSegmentTexts.value = []
-    pendingInputText.value = ''
-    if (compositionCommitSubmitTimer !== undefined) {
-        window.clearTimeout(compositionCommitSubmitTimer)
-        compositionCommitSubmitTimer = undefined
-    }
-    isWaitingForCompositionCommitSubmit = false
-    clearInputReceiverValue()
-    focusInputReceiver()
 }
 </script>
 
@@ -398,18 +379,11 @@ const clearPracticeInput = () => {
 
             <footer class="pb-8">
                 <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
-                    <button v-for="action in toolActions" :key="action.label" type="button"
-                        class="font-fredoka flex size-8 items-center justify-center text-xl font-black text-[#2563eb] transition-all duration-150 hover:-translate-y-0.5 hover:text-emerald-600 active:translate-y-0"
-                        :aria-label="action.label">
-                        {{ action.iconText }}
-                    </button>
-                    <button type="button"
-                        class="font-fredoka flex size-8 items-center justify-center text-lg font-black text-[#2563eb] transition-all duration-150 hover:-translate-y-0.5 hover:text-emerald-600 active:translate-y-0"
-                        aria-label="清空输入" @click="clearPracticeInput">
-                        ×
-                    </button>
+                    <PracticeToolActionButton v-for="action in toolActions" :key="action.label" :label="action.label"
+                        :icon-text="action.iconText" />
                 </div>
             </footer>
+
         </section>
     </main>
 </template>

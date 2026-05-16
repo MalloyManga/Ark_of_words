@@ -95,3 +95,7 @@ Build the first UI-only homepage prototype for Ark_of_words so the project can r
 
 - uipro design system search suggested a bright, playful learning-app direction; adapt this into a calmer emerald learning-tool UI rather than a childlike education site.
 - Existing project has Tailwind CSS v4 configured through `@tailwindcss/vite`.
+
+## Backlog
+
+- Adjust practice-session character status colors after the final character-level typing state model is settled.
