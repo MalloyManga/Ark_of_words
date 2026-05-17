@@ -1,13 +1,13 @@
 <template>
     <svg t="1778773068884" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6113"
-        data-darkreader-inline-fill="" width="50" height="50">
+        width="50" height="50">
         <path
             d="M702.1568 15.9744a54.76352 54.76352 0 0 1 76.75904-0.2048 53.08416 53.08416 0 0 1 0.2048 75.776L318.60736 547.30752a54.784 54.784 0 0 1-76.77952 0.2048 53.10464 53.10464 0 0 1-0.2048-75.776L702.1568 15.9744z"
-            fill="#595757" p-id="6114" data-darkreader-inline-fill=""
-            style="--darkreader-inline-fill: var(--darkreader-background-595757, #4a5053);"></path>
+            fill="#595757" p-id="6114" style="--darkreader-inline-fill: var(--darkreader-background-595757, #4a5053);">
+        </path>
         <path
             d="M779.14112 927.5392a53.10464 53.10464 0 0 1-0.2048 75.776 54.76352 54.76352 0 0 1-76.77952-0.2048L241.60256 547.34848a53.10464 53.10464 0 0 1 0.2048-75.776 54.80448 54.80448 0 0 1 76.77952 0.2048L779.14112 927.5392z"
-            fill="#595757" p-id="6115" data-darkreader-inline-fill=""
-            style="--darkreader-inline-fill: var(--darkreader-background-595757, #4a5053);"></path>
+            fill="#595757" p-id="6115" style="--darkreader-inline-fill: var(--darkreader-background-595757, #4a5053);">
+        </path>
     </svg>
 </template>
