@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import IconAudio from '~/components/icon/Audio.vue'
+import IconMenu from '~/components/icon/Menu.vue'
+import IconSetting from '~/components/icon/Setting.vue'
+import IconToggle from '~/components/icon/Toggle.vue'
+import IconTranslation from '~/components/icon/Translation.vue'
+import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
+
 type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
 type CharacterStatus = 'pending' | 'correct' | 'wrong' | 'preview'
 
@@ -9,7 +16,7 @@ interface DifficultyDetail {
 
 interface ToolAction {
     label: string
-    iconText: string
+    icon: Component
 }
 
 interface TargetSegment {
@@ -59,12 +66,11 @@ const difficultyDetails: Record<PracticeDifficulty, DifficultyDetail> = {
 }
 
 const toolActions: readonly ToolAction[] = [
-    { label: '播放语音', iconText: '♪' },
-    { label: '显示提示', iconText: '◉' },
-    { label: '下一题', iconText: '▶' },
-    { label: '翻译', iconText: '文' },
-    { label: '列表', iconText: '☰' },
-    { label: '设置', iconText: '⚙' },
+    { label: '播放语音', icon: IconAudio },
+    { label: '显示提示', icon: IconToggle },
+    { label: '翻译', icon: IconTranslation },
+    { label: '列表', icon: IconMenu },
+    { label: '设置', icon: IconSetting },
 ]
 
 // 规范化传入的难度系数 得到规范的难度 detail
@@ -379,8 +385,9 @@ const handleInputKeydown = (event: KeyboardEvent) => {
 
             <footer class="pb-8">
                 <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
-                    <PracticeToolActionButton v-for="action in toolActions" :key="action.label" :label="action.label"
-                        :icon-text="action.iconText" />
+                    <PracticeToolActionButton v-for="action in toolActions" :key="action.label" :label="action.label">
+                        <component :is="action.icon" class="size-6" aria-hidden="true" />
+                    </PracticeToolActionButton>
                 </div>
             </footer>
 
