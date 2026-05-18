@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import IconAudio from '~/components/icon/Audio.vue'
-import IconMenu from '~/components/icon/Menu.vue'
-import IconSetting from '~/components/icon/Setting.vue'
-import IconToggle from '~/components/icon/Toggle.vue'
-import IconTranslation from '~/components/icon/Translation.vue'
+import { practiceToolActions } from '~/constants/practiceToolActions'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
 type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
@@ -13,11 +8,6 @@ type CharacterStatus = 'pending' | 'correct' | 'wrong'
 interface DifficultyDetail {
     label: string
     classes: string
-}
-
-interface ToolAction {
-    label: string
-    icon: Component
 }
 
 interface DisplayCharacter {
@@ -74,14 +64,6 @@ const difficultyDetails: Record<PracticeDifficulty, DifficultyDetail> = {
         classes: 'text-[#047857]',
     },
 }
-
-const toolActions: readonly ToolAction[] = [
-    { label: '播放语音', icon: IconAudio },
-    { label: '显示提示', icon: IconToggle },
-    { label: '翻译', icon: IconTranslation },
-    { label: '列表', icon: IconMenu },
-    { label: '设置', icon: IconSetting },
-]
 
 // 规范化传入的难度系数 得到规范的难度 detail
 const isPracticeDifficulty = (value: unknown): value is PracticeDifficulty => {
@@ -509,7 +491,7 @@ const handleInputKeydown = (event: KeyboardEvent) => {
             <!-- 下方 tools -->
             <footer class="pb-8">
                 <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
-                    <PracticeToolActionButton v-for="action in toolActions" :key="action.label" :label="action.label">
+                    <PracticeToolActionButton v-for="action in practiceToolActions" :key="action.label" :label="action.label">
                         <component :is="action.icon" class="size-6" aria-hidden="true" />
                     </PracticeToolActionButton>
                 </div>

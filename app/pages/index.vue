@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { homeTypewriterLines } from '~/constants/homeTypewriterLines'
 import wisadelImage from '../assets/imgs/Wiš\'adel.png'
 
 interface PracticeStats {
@@ -19,11 +20,6 @@ const heroIntro = {
     description: '听见熟悉的语音 敲下日语台词 把听写练习做成一张轻快的小课桌 而不是一份冷冰冰的试卷',
 } as const
 
-const typewriterLines = [
-    { label: '作战中3', text: 'はいはい、焦らなくていいわよ、全員分あるから' },
-    { label: '戳一下', text: 'そんなに死にたいの' },
-    { label: '行动出发', text: '楽しい時間って、ほんとに終わらないわよねぇ' },
-] as const
 </script>
 
 <template>
@@ -63,7 +59,7 @@ const typewriterLines = [
                     </div>
 
                     <div class="absolute right-4 top-[70%] sm:right-8">
-                        <TypewriterText :lines="typewriterLines" />
+                        <TypewriterText :lines="homeTypewriterLines" />
                     </div>
                 </div>
             </div>

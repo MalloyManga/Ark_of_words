@@ -1,0 +1,12 @@
+export interface TypewriterLineInfo {
+    label: string
+    text: string
+    typingSpeedMs?: number
+    deletingSpeedMs?: number
+}
+
+export const homeTypewriterLines = [
+    { label: '作战中3', text: 'はいはい、焦らなくていいわよ、全員分あるから' },
+    { label: '戳一下', text: 'そんなに死にたいの' },
+    { label: '行动出发', text: '楽しい時間って、ほんとに終わらないわよねぇ' },
+] as const satisfies readonly TypewriterLineInfo[]

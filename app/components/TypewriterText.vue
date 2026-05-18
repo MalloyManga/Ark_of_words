@@ -1,10 +1,5 @@
 <script setup lang="ts">
-interface TypewriterLineInfo {
-    label: string
-    text: string
-    typingSpeedMs?: number
-    deletingSpeedMs?: number
-}
+import type { TypewriterLineInfo } from '~/constants/homeTypewriterLines'
 
 interface TypewriterTextProps {
     lines: readonly TypewriterLineInfo[]
