@@ -472,8 +472,8 @@ const handleInputKeydown = (event: KeyboardEvent) => {
 
                 <!-- 主体 原文部分 -->
                 <div
-                    class="mt-4 flex w-full max-w-5xl flex-wrap items-end justify-center gap-y-3 text-4xl leading-[1.28] text-[#2563eb]">
-                    <template v-for="chunk in displayCharacterChunks" :key="chunk.id">
+                    class="mt-4 flex w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-4xl leading-[1.28] text-[#2563eb]">
+                    <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
                         <span class="inline-flex items-end">
                             <template v-for="(character, index) in chunk.characters"
                                 :key="`${chunk.id}-${character.value}-${index}`">
@@ -483,9 +483,10 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                                     {{ character.value }}
                                 </span>
                             </template>
+                            <span v-if="isCursorAfterAllCharacters && chunkIndex === displayCharacterChunks.length - 1"
+                                class="typing-caret" aria-hidden="true" />
                         </span>
                     </template>
-                    <span v-if="isCursorAfterAllCharacters" class="typing-caret" aria-hidden="true" />
                 </div>
 
                 <!-- 待确认 IME候选词 -->
