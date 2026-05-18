@@ -2,6 +2,8 @@
 interface TypewriterLineInfo {
     label: string
     text: string
+    typingSpeedMs?: number
+    deletingSpeedMs?: number
 }
 
 interface TypewriterTextProps {
@@ -29,6 +31,9 @@ const activeLineInfo = computed(() => lines[activeLineIndex.value] ?? lines[0] ?
 // 使用 Array.from 按用户能看到的字符切分
 const activeLineCharacters = computed(() => Array.from(activeLineInfo.value.text))
 const visibleText = computed(() => activeLineCharacters.value.slice(0, visibleCharacterCount.value).join(''))
+// 每句台词可以单独控制输入和删除速度  未配置时回退到全局默认速度
+const activeLineTypingSpeedMs = computed(() => activeLineInfo.value.typingSpeedMs ?? TYPE_SPEED_MS)
+const activeLineDeletingSpeedMs = computed(() => activeLineInfo.value.deletingSpeedMs ?? DELETE_SPEED_MS)
 
 const clearTypewriterTimer = () => {
     if (typewriterTimer) {
@@ -40,19 +45,19 @@ const queueNextTypewriterStep = (delay: number) => {
     clearTypewriterTimer()
     typewriterTimer = setTimeout(runTypewriterStep, delay)
 }
-// typeWeiter 状态机
+// typewriter 状态机
 // 1 输入当前台词  每次增加一个可见字符
-// 2 整句显示后停留一小段时间
-// 3 删除当前台词  每次减少一个可见字符
+// 2 整句显示后停留一小段时间  让用户有足够时间阅读
+// 3 删除当前台词  每次减少一个可见字符  删除速度同样支持按台词覆盖
 // 4 删除完成后切换到下一句  然后重新开始输入
 const runTypewriterStep = () => {
     const activeLineLength = activeLineCharacters.value.length
 
     if (isDeletingCurrentLine.value) {
-        // 删除阶段
+        // 删除阶段  每次排队时读取当前台词速度  避免切换台词后沿用上一句配置
         if (visibleCharacterCount.value > 0) {
             visibleCharacterCount.value -= 1
-            queueNextTypewriterStep(DELETE_SPEED_MS)
+            queueNextTypewriterStep(activeLineDeletingSpeedMs.value)
             return
         }
         else {
@@ -63,13 +68,13 @@ const runTypewriterStep = () => {
         }
     }
     else if (visibleCharacterCount.value < activeLineLength) {
-        // 输入阶段
+        // 输入阶段  默认速度保持旧行为  单句配置只影响当前台词
         visibleCharacterCount.value += 1
-        queueNextTypewriterStep(TYPE_SPEED_MS)
+        queueNextTypewriterStep(activeLineTypingSpeedMs.value)
         return
     }
 
-    // 初始阶段 后续不走这里
+    // 完整显示阶段  下一步进入删除状态
     isDeletingCurrentLine.value = true
     queueNextTypewriterStep(HOLD_AFTER_TYPED_MS)
 }
