@@ -8,9 +8,8 @@ const { label } = defineProps<PracticeToolActionButtonProps>()
 
 <template>
     <span
-        class="inline-flex shrink-0 text-[#2563eb] transition-colors duration-150 hover:text-emerald-600 active:text-emerald-600"
-        role="img"
-        :aria-label="label">
+        class="inline-flex shrink-0 text-[#2563eb] transition-colors duration-150 hover:text-emerald-600 active:text-emerald-600 cursor-pointer"
+        role="img" :aria-label="label">
         <slot />
     </span>
 </template>
