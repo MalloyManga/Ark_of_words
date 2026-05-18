@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import IconAudio from '~/components/icon/Audio.vue'
 import IconMenu from '~/components/icon/Menu.vue'
 import IconSetting from '~/components/icon/Setting.vue'
@@ -7,7 +8,7 @@ import IconTranslation from '~/components/icon/Translation.vue'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
 type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
-type CharacterStatus = 'pending' | 'correct' | 'wrong' | 'preview'
+type CharacterStatus = 'pending' | 'correct' | 'wrong'
 
 interface DifficultyDetail {
     label: string
@@ -19,28 +20,37 @@ interface ToolAction {
     icon: Component
 }
 
-interface TargetSegment {
-    text: string
-    kana: string
-}
-
 interface DisplayCharacter {
     value: string
-    status: CharacterStatus
+    status: CharacterStatus // 当前字符和已提交输入之间的判定状态
     isCursorBefore: boolean // 用于显示当前的模拟光标
+    isExtraSubmittedCharacter: boolean // 用户多输入的字符会追加显示在原文后方
+}
+
+interface DisplayCharacterChunk {
+    id: string
+    characters: readonly DisplayCharacter[]
 }
 
 const route = useRoute()
 
 const inputReceiverRef = useTemplateRef<HTMLInputElement>('inputReceiverRef')
 
-const targetSegments: readonly TargetSegment[] = [
-    { text: '空', kana: 'そら' },
-    { text: '青い', kana: 'あおい' },
-    { text: '海', kana: 'うみ' },
-]
+const wisadelVoiceData = parsePrtsOperatorVoiceData(wisadelVoicePageRawData)
+const currentPracticeLine = wisadelVoiceData.lines[14]
+const currentPracticeAudioPath = currentPracticeLine
+    ? `/${wisadelVoiceData.japaneseAudioBasePath}/${currentPracticeLine.audioFileName}`
+    : ''
+const currentPracticeChineseText = currentPracticeLine?.chineseText ?? ''
+const targetPracticeText = currentPracticeLine?.japaneseText ?? ''
+const currentPracticeLineTitle = currentPracticeLine?.title ?? `${wisadelVoiceData.operatorName}的不知道哪一条语音`
 
-const confirmedSegmentTexts = ref<string[]>([])
+const createPlaceholderKanaHint = (text: string) => {
+    // kana 生成还没有确定 这里先用等长占位提示验证数据接线
+    return Array.from(text).map(() => '＿').join('')
+}
+
+const submittedText = ref('')
 const pendingInputText = ref('')
 const isComposingText = ref(false)
 let compositionCommitSubmitTimer: ReturnType<typeof window.setTimeout> | undefined
@@ -84,101 +94,183 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
 })
 const selectedDifficultyDetail = computed(() => difficultyDetails[selectedDifficulty.value])
 
-const kanaHint = computed(() => targetSegments.map((segment) => segment.kana).join('　　'))
+const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText))
 
 // backlog 待后续结合正确 预览 错误状态统一调整配色方案
 const displayCharacterTextClasses: Record<CharacterStatus, string> = {
     pending: 'text-[#2563eb]',
-    preview: 'text-[#2563eb]',
     correct: 'text-[#1d4ed8]',
     wrong: 'text-[#ef4444]',
 }
 const getDisplayCharacterTextClass = (status: CharacterStatus) => displayCharacterTextClasses[status]
 
-/**
- * 用 Array.from 统计字符数
- * 日文假名 汉字和部分组合字符都不适合直接使用 string.length
- * 这里的字符数会用于模拟原文光标的位置
- */
-const countTextCharacters = (text: string) => Array.from(text).length
+const displayChunkEndingCharacters = new Set(['、', '。', '！', '？', '!', '?', '」', '』', '）', ')'])
+const displayChunkNaturalBreakCharacters = new Set([' '])
+
+const maximumDisplayChunkCharacterCount = 14 // 兜底换行长度
 
 /**
- * 寻找已经完成且正确的片段的下一个片段的 index
- * 全部完成返回 length
- * 提交了错误的片段 则保持在当前 index
+ * 方案 A 的核心是连续字符串判定
+ * submittedText 是唯一已经提交的输入源
+ * pendingInputText 只表示 IME 候选或待确认文本 不参与原文判定
+ * targetPracticeText 中的空格只做视觉停顿和光标跳过 不需要用户输入
  */
-const activeSegmentIndex = computed(() => {
-    const unfinishedSegmentIndex = targetSegments.findIndex((segment, segmentIndex) => {
-        return confirmedSegmentTexts.value[segmentIndex] !== segment.text
-    })
-    return unfinishedSegmentIndex === -1 ? targetSegments.length : unfinishedSegmentIndex
+const inputWhitespacePattern = /\s/gu
+const targetSpacePattern = /\s/u
+
+/**
+ * 清除所有的用户输入空格 换行 等等
+ */
+const normalizeInputText = (text: string) => text.replace(inputWhitespacePattern, '')
+
+const isTargetSpaceCharacter = (character: string) => targetSpacePattern.test(character)
+
+const targetTextCharacters = computed(() => Array.from(targetPracticeText))
+const targetInputCharacters = computed(() => {
+    return targetTextCharacters.value.filter((character) => !isTargetSpaceCharacter(character))
 })
-const activeSegment = computed<TargetSegment | undefined>(() => targetSegments[activeSegmentIndex.value])
-/**
- * 模拟光标 index
- */
-const simulatedCursorCharacterIndex = computed(() => {
-    let cursorCharacterIndex = 0
-    console.log(confirmedSegmentTexts.value)
-    targetSegments.some((segment, segmentIndex) => {
-        const submittedText = confirmedSegmentTexts.value[segmentIndex]
-        const isActiveSegment = segmentIndex === activeSegmentIndex.value
+const submittedTextCharacters = computed(() => Array.from(submittedText.value))
 
-        if (isActiveSegment) {
-            // cursorCharacterIndex += Math.min(countTextCharacters(submittedText || ''), countTextCharacters(segment.text))
-            cursorCharacterIndex += countTextCharacters(submittedText || '')
-            return true
+/**
+ * 根据已经提交的可输入字符数寻找光标在原文中的位置
+ * 如果提交数量已经覆盖所有可输入字符 则返回原文末尾
+ */
+const getCursorTargetCharacterIndex = (submittedCharacterCount: number) => {
+    let passedInputCharacterCount = 0
+
+    for (const [targetCharacterIndex, targetCharacter] of targetTextCharacters.value.entries()) {
+        // 将输入的 textChar 逐个与原文 char 进行匹配(不做检查)
+        // 原文遇到空格就跳过 passedInputCharacterCount 不做修改 只记录字符的 pass
+        if (isTargetSpaceCharacter(targetCharacter)) {
+            continue
+        }
+        // 匹配数量相等时 pass 字符 === 提交的字符数量 返回当前的原文 index
+        if (passedInputCharacterCount === submittedCharacterCount) {
+            return targetCharacterIndex
         }
 
-        // 跳过 已经提交过的且正确的的 seg 直接到 activeSeg
-        if (submittedText) {
-            cursorCharacterIndex += Math.min(countTextCharacters(submittedText), countTextCharacters(segment.text))
-            return false
-        }
+        passedInputCharacterCount += 1
+    }
 
-        return true
-    })
-
-    return cursorCharacterIndex
+    return targetTextCharacters.value.length
+}
+const simulatedCursorTargetCharacterIndex = computed(() => {
+    return getCursorTargetCharacterIndex(submittedTextCharacters.value.length)
 })
+
+/**
+ * 完成检测只比较可输入字符
+ * 目标文本里的空格不计入完成长度
+ */
+const isSubmittedTextCompleteAndCorrect = (text: string) => {
+    const normalizedSubmittedCharacters = Array.from(normalizeInputText(text))
+
+    if (normalizedSubmittedCharacters.length !== targetInputCharacters.value.length) {
+        return false
+    }
+
+    return normalizedSubmittedCharacters.every((character, characterIndex) => {
+        return character === targetInputCharacters.value[characterIndex]
+    })
+}
+
+/**
+ * 得到规范处理后的每一个渲染字符 保留空格
+ */
 const displayCharacters = computed<DisplayCharacter[]>(() => {
     const characters: DisplayCharacter[] = []
-    let currentCharacterIndex = 0
+    let targetInputCharacterIndex = 0
 
-    targetSegments.forEach((segment, segmentIndex) => {
-        // 拆分 targetSegments 和 confirmedSegmentTexts 当中的片段并逐 char 比较
-        const submittedText = confirmedSegmentTexts.value[segmentIndex] || ''
-        const submittedCharacters = Array.from(submittedText)
+    /**
+     * 第一轮只渲染原文自身
+     * 空格会保留在原文中 但它不会消耗 submittedText 的字符
+     * 因此 空 青い 这样的文本输入 空が 时
+     * が 会和 青 对比 而不是和中间的空格对比
+     */
+    targetTextCharacters.value.forEach((targetCharacter, targetCharacterIndex) => {
+        const isTargetSpace = isTargetSpaceCharacter(targetCharacter)
+        const submittedCharacter = isTargetSpace
+            ? undefined
+            : submittedTextCharacters.value[targetInputCharacterIndex]
+        const status: CharacterStatus = submittedCharacter === undefined
+            ? 'pending'
+            : submittedCharacter === targetCharacter ? 'correct' : 'wrong'
 
-        // 逐 char 对比
-        Array.from(segment.text).forEach((character, characterIndex) => {
-            const submittedCharacter = submittedCharacters[characterIndex]
-            let status: CharacterStatus = 'pending'
+        characters.push({
+            value: targetCharacter,
+            status,
+            isCursorBefore: targetCharacterIndex === simulatedCursorTargetCharacterIndex.value
+                && submittedTextCharacters.value.length <= targetInputCharacters.value.length, // 将输入的文本限制在原文本的长度 并判断是否为光标前文本
+            isExtraSubmittedCharacter: false,
+        })
 
-            if (submittedCharacter) {
-                status = submittedCharacter === character ? 'preview' : 'wrong'
-            }
-            if (submittedText === segment.text) {
-                status = 'correct'
-            }
+        // 原文为非空格时才会跳到下一个输入 textChar 进行比对
+        if (!isTargetSpace) {
+            targetInputCharacterIndex += 1
+        }
+    })
 
-            characters.push({
-                value: character,
-                status,
-                isCursorBefore: currentCharacterIndex === simulatedCursorCharacterIndex.value,
-            })
-            currentCharacterIndex += 1
+    /**
+     * 第二轮处理多输入字符
+     * 如果提交字符数超过目标可输入字符数
+     * 多出来的字符不再参与原文位置匹配
+     * 直接追加到原文后方并标红 光标也会落到这些额外字符之后
+     */
+    const extraSubmittedCharacters = submittedTextCharacters.value.slice(targetInputCharacters.value.length)
+
+    extraSubmittedCharacters.forEach((submittedCharacter) => {
+        characters.push({
+            value: submittedCharacter,
+            status: 'wrong',
+            isCursorBefore: false,
+            isExtraSubmittedCharacter: true,
         })
     })
 
     return characters
 })
-const isCursorAfterAllCharacters = computed(() => {
-    const targetTextCharacterCount = targetSegments.reduce((characterCount, segment) => {
-        return characterCount + countTextCharacters(segment.text)
-    }, 0)
+/**
+ * 将原文字符切成视觉块
+ * 这里不改变 submittedText
+ * 原因是输入判定仍然需要完整句子作为真实数据源
+ * 视觉块只负责让浏览器可以在日文标点或空格后换行
+ * 同时用长度兜底处理没有标点的长句
+ * parser 已经负责练习文本规范化 这里继续只处理视觉换行
+ */
+const displayCharacterChunks = computed<DisplayCharacterChunk[]>(() => {
+    const chunks: DisplayCharacterChunk[] = []
+    let chunkCharacters: DisplayCharacter[] = []
 
-    return simulatedCursorCharacterIndex.value === targetTextCharacterCount
+    displayCharacters.value.forEach((character, characterIndex) => {
+        chunkCharacters.push(character)
+
+        const isPunctuationBreak = displayChunkEndingCharacters.has(character.value)
+        const isNaturalSpaceBreak = displayChunkNaturalBreakCharacters.has(character.value)
+        const isLengthFallbackBreak = chunkCharacters.length >= maximumDisplayChunkCharacterCount
+        const isLastCharacter = characterIndex === displayCharacters.value.length - 1
+
+        // console.log(`目前处理${character.value},状态：${isPunctuationBreak},${isNaturalSpaceBreak},${isLengthFallbackBreak},${isLastCharacter}.`)
+
+        // 普通字符就 return 进入下一轮 遇到需要换行的地方就打包之前的 charsArr 进 chunk 并清空 charsArr 进入下一轮
+        if (!isPunctuationBreak && !isNaturalSpaceBreak && !isLengthFallbackBreak && !isLastCharacter) {
+            return
+        }
+
+        chunks.push({
+            id: `${chunks.length}-${characterIndex}`,
+            characters: chunkCharacters,
+        })
+        chunkCharacters = []
+    })
+
+    return chunks
+})
+
+/**
+ * 提交文本 >= 源文本 时 用于显示模拟光标
+ */
+const isCursorAfterAllCharacters = computed(() => {
+    return submittedTextCharacters.value.length >= targetInputCharacters.value.length
 })
 
 const focusInputReceiver = () => {
@@ -191,7 +283,12 @@ const clearInputReceiverValue = () => {
     inputReceiverRef.value.value = ''
 }
 const syncPendingInputElementValue = (inputElement: HTMLInputElement) => {
-    pendingInputText.value = inputElement.value
+    const normalizedInputValue = normalizeInputText(inputElement.value)
+    pendingInputText.value = normalizedInputValue
+
+    if (!isComposingText.value && inputElement.value !== normalizedInputValue) {
+        inputElement.value = normalizedInputValue
+    }
 }
 
 /**
@@ -218,11 +315,11 @@ const syncPendingCompositionText = (event: CompositionEvent) => {
     const inputElement = event.target
 
     if (inputElement instanceof HTMLInputElement && inputElement.value) {
-        pendingInputText.value = inputElement.value
+        pendingInputText.value = normalizeInputText(inputElement.value)
         return
     }
 
-    pendingInputText.value = event.data
+    pendingInputText.value = normalizeInputText(event.data)
 }
 
 /**
@@ -232,19 +329,26 @@ const syncPendingCompositionText = (event: CompositionEvent) => {
  * 这样可以兼容不会把候选确认 Enter 暴露给页面的系统输入法
  */
 const confirmPendingInput = () => {
-    if (!pendingInputText.value || !activeSegment.value) {
+    const normalizedPendingInputText = normalizeInputText(pendingInputText.value)
+
+    if (!normalizedPendingInputText) {
+        clearInputReceiverValue()
         return
     }
 
-    // 将确认的 inputText 追加到 nextConfirmedSegmentTexts 的对应位置
-    // 之后更新 confirmedSegmentTexts.value
-    const nextConfirmedSegmentTexts = [...confirmedSegmentTexts.value]
-    nextConfirmedSegmentTexts[activeSegmentIndex.value] = pendingInputText.value
-    confirmedSegmentTexts.value = nextConfirmedSegmentTexts.slice(0, activeSegmentIndex.value + 1)
+    // 方案 A 不再按片段覆盖
+    // 每次确认都把候选词追加到同一个提交字符串中
+    const nextSubmittedText = `${submittedText.value}${normalizedPendingInputText}`
+    submittedText.value = nextSubmittedText
 
     // 重置 pendingInputText 待确认文本
     pendingInputText.value = ''
     clearInputReceiverValue()
+
+    if (isSubmittedTextCompleteAndCorrect(nextSubmittedText)) {
+        console.log('当前练习文本已完全正确')
+    }
+
     nextTick(focusInputReceiver)
 }
 
@@ -255,7 +359,6 @@ const confirmPendingInput = () => {
  * 若后续浏览器又派发了一次普通 Enter keydown confirmPendingInput 会因文本已清空而直接跳过
  */
 const confirmPendingInputAfterCompositionCommit = () => {
-    console.log(333)
     if (compositionCommitSubmitTimer !== undefined) {
         window.clearTimeout(compositionCommitSubmitTimer)
     }
@@ -279,16 +382,14 @@ const confirmPendingInputAfterCompositionCommit = () => {
  * 如果 input 里还有待确认文本 就交给浏览器正常删除
  * 这样待确认文本减少时 原文模拟光标也会跟着往前移动
  */
-const rollbackConfirmedSegment = () => {
-    if (pendingInputText.value || confirmedSegmentTexts.value.length === 0) {
+const rollbackSubmittedCharacter = () => {
+    if (pendingInputText.value || !submittedText.value) {
         return
     }
 
-    const rollbackSegmentIndex = activeSegmentIndex.value < confirmedSegmentTexts.value.length
-        ? activeSegmentIndex.value
-        : confirmedSegmentTexts.value.length - 1
-
-    confirmedSegmentTexts.value = confirmedSegmentTexts.value.slice(0, rollbackSegmentIndex)
+    const nextSubmittedCharacters = Array.from(submittedText.value)
+    nextSubmittedCharacters.pop()
+    submittedText.value = nextSubmittedCharacters.join('')
     nextTick(focusInputReceiver)
 }
 
@@ -305,12 +406,17 @@ const handleCompositionEnd = (event: CompositionEvent) => {
 }
 
 const handleInputKeydown = (event: KeyboardEvent) => {
+    if ((event.key === ' ' || event.code === 'Space') && !isComposingText.value && !event.isComposing) {
+        event.preventDefault()
+        return
+    }
+
     if (event.key === 'Backspace') {
         if (!pendingInputText.value) {
             event.preventDefault()
         }
 
-        rollbackConfirmedSegment()
+        rollbackSubmittedCharacter()
         return
     }
 
@@ -353,21 +459,36 @@ const handleInputKeydown = (event: KeyboardEvent) => {
             </header>
 
             <div class="flex flex-1 flex-col items-center justify-center text-center" @click="focusInputReceiver">
+                <p v-if="currentPracticeAudioPath" class="sr-only">
+                    {{ currentPracticeAudioPath }}
+                </p>
+                <p v-if="currentPracticeChineseText" class="sr-only">
+                    {{ currentPracticeChineseText }}
+                </p>
+
                 <p class="text-sm font-medium tracking-[0.2em] text-emerald-700/70">
                     {{ kanaHint }}
                 </p>
 
-                <div class="mt-4 flex items-end justify-center text-4xl font-light leading-none text-[#2563eb]">
-                    <template v-for="(character, index) in displayCharacters" :key="`${character.value}-${index}`">
-                        <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
-                        <span class="inline-flex min-w-[1.12em] justify-center"
-                            :class="getDisplayCharacterTextClass(character.status)">
-                            {{ character.value }}
+                <!-- 主体 原文部分 -->
+                <div
+                    class="mt-4 flex w-full max-w-5xl flex-wrap items-end justify-center gap-y-3 text-4xl leading-[1.28] text-[#2563eb]">
+                    <template v-for="chunk in displayCharacterChunks" :key="chunk.id">
+                        <span class="inline-flex items-end">
+                            <template v-for="(character, index) in chunk.characters"
+                                :key="`${chunk.id}-${character.value}-${index}`">
+                                <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
+                                <span class="inline-flex min-w-[1.12em] justify-center"
+                                    :class="getDisplayCharacterTextClass(character.status)">
+                                    {{ character.value }}
+                                </span>
+                            </template>
                         </span>
                     </template>
                     <span v-if="isCursorAfterAllCharacters" class="typing-caret" aria-hidden="true" />
                 </div>
 
+                <!-- 待确认 IME候选词 -->
                 <div class="relative mt-9 flex min-h-8 w-full justify-center">
                     <p v-if="pendingInputText" class="text-sm font-medium tracking-normal text-[#2563eb]">
                         待确认：<span class="border-b border-[#2563eb] px-1">{{ pendingInputText }}</span>
@@ -378,11 +499,13 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                         @compositionend="handleCompositionEnd" @keydown="handleInputKeydown">
                 </div>
 
+                <!-- 当前语音的 title -->
                 <p class="font-zh-playful mt-6 text-base font-bold text-emerald-700/75 sm:text-lg">
-                    蓝色的大海
+                    {{ currentPracticeLineTitle }}
                 </p>
             </div>
 
+            <!-- 下方 tools -->
             <footer class="pb-8">
                 <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
                     <PracticeToolActionButton v-for="action in toolActions" :key="action.label" :label="action.label">
