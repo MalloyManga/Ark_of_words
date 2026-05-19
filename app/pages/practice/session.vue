@@ -421,7 +421,10 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                     <IconBack class="size-5" />
                 </NuxtLink>
 
-                <div class="flex items-center gap-4">
+                <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 text-right">
+                    <p class="font-zh-playful max-w-[min(52vw,28rem)] truncate text-sm font-bold text-emerald-700/75 sm:text-base">
+                        {{ currentPracticeLineTitle }}
+                    </p>
                     <span class="font-zh-playful text-sm font-black" :class="selectedDifficultyDetail.classes">
                         {{ selectedDifficultyDetail.label }}
                     </span>
@@ -473,21 +476,19 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                         @compositionend="handleCompositionEnd" @keydown="handleInputKeydown">
                 </div>
 
-                <!-- 当前语音的 title -->
+                <!-- 当前语音的中文译文 -->
                 <p class="font-zh-playful mt-6 text-base font-bold text-emerald-700/75 sm:text-lg">
-                    {{ currentPracticeLineTitle }}
+                    {{ currentPracticeChineseText || '暂无中文译文' }}
                 </p>
-            </div>
 
-            <!-- 下方 tools -->
-            <footer class="pb-8">
-                <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
+                <!-- 下方工具按钮 -->
+                <div class="mt-7 flex w-full max-w-md items-center justify-center gap-5">
                     <PracticeToolActionButton v-for="action in practiceToolActions" :key="action.label"
                         :label="action.label">
                         <component :is="action.icon" class="size-6" aria-hidden="true" />
                     </PracticeToolActionButton>
                 </div>
-            </footer>
+            </div>
 
         </section>
     </main>
