@@ -15,11 +15,10 @@ const practiceStats: PracticeStats = {
 }
 
 const heroIntro = {
-    topic: '日语听写 / 假名输入 / 干员语音',
+    topic: '日语听写 / 干员语音 / 自动校队',
     title: 'Ark_of_words',
-    description: '听见熟悉的语音 敲下日语台词 把听写练习做成一张轻快的小课桌 而不是一份冷冰冰的试卷',
+    description: '听见熟悉的语音 敲下日语台词 把听写练习做成一张轻快的小课桌 而不是一份冷冰冰的试卷(把这一条润色一下塞简介里 不要复制粘贴)',
 } as const
-
 </script>
 
 <template>
