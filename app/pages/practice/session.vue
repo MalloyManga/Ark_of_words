@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { practiceToolActions } from '~/constants/practiceToolActions'
-import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
 type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
 type CharacterStatus = 'pending' | 'correct' | 'wrong'
@@ -22,23 +21,17 @@ interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
+const {
+    currentPracticeAudioPath,
+    currentPracticeChineseText,
+    targetPracticeText,
+    currentPracticeLineTitle,
+    kanaHint,
+} = usePracticeLineSource()
+
 const route = useRoute()
 
 const inputReceiverRef = useTemplateRef<HTMLInputElement>('inputReceiverRef')
-
-const wisadelVoiceData = parsePrtsOperatorVoiceData(wisadelVoicePageRawData)
-const currentPracticeLine = wisadelVoiceData.lines[14]
-const currentPracticeAudioPath = currentPracticeLine
-    ? `/${wisadelVoiceData.japaneseAudioBasePath}/${currentPracticeLine.audioFileName}`
-    : ''
-const currentPracticeChineseText = currentPracticeLine?.chineseText ?? ''
-const targetPracticeText = currentPracticeLine?.japaneseText ?? ''
-const currentPracticeLineTitle = currentPracticeLine?.title ?? `${wisadelVoiceData.operatorName}的不知道哪一条语音`
-
-const createPlaceholderKanaHint = (text: string) => {
-    // kana 生成还没有确定 这里先用等长占位提示验证数据接线
-    return Array.from(text).map(() => '＿').join('')
-}
 
 const submittedText = ref('')
 const pendingInputText = ref('')
@@ -75,8 +68,6 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
 const selectedDifficultyDetail = computed(() => difficultyDetails[selectedDifficulty.value])
-
-const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText))
 
 // backlog 待后续结合正确 预览 错误状态统一调整配色方案
 const displayCharacterTextClasses: Record<CharacterStatus, string> = {
@@ -491,7 +482,8 @@ const handleInputKeydown = (event: KeyboardEvent) => {
             <!-- 下方 tools -->
             <footer class="pb-8">
                 <div class="mx-auto flex w-full max-w-md items-center justify-center gap-5">
-                    <PracticeToolActionButton v-for="action in practiceToolActions" :key="action.label" :label="action.label">
+                    <PracticeToolActionButton v-for="action in practiceToolActions" :key="action.label"
+                        :label="action.label">
                         <component :is="action.icon" class="size-6" aria-hidden="true" />
                     </PracticeToolActionButton>
                 </div>
