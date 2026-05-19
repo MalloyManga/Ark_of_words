@@ -12,7 +12,7 @@ interface FooterLink {
 
 const footerLinks: readonly FooterLink[] = [
     {
-        label: 'B站',
+        label: '劈里啪啦',
         icon: Bilibili,
         to: '#',
     },
