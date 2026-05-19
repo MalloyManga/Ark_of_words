@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { TypewriterLineInfo } from '~/constants/homeTypewriterLines'
+import {
+    DELETE_SPEED_MS,
+    HOLD_AFTER_TYPED_MS,
+    HOLD_BEFORE_NEXT_LINE_MS,
+    TYPE_SPEED_MS,
+    type TypewriterLineInfo,
+} from '~/constants/homeTypewriterLines'
 
 interface TypewriterTextProps {
     lines: readonly TypewriterLineInfo[]
@@ -9,11 +15,6 @@ const { lines } = defineProps<TypewriterTextProps>()
 const activeLineIndex = ref(0)
 const visibleCharacterCount = ref(0)
 const isDeletingCurrentLine = ref(false)
-
-const TYPE_SPEED_MS = 90
-const DELETE_SPEED_MS = 45
-const HOLD_AFTER_TYPED_MS = 1200
-const HOLD_BEFORE_NEXT_LINE_MS = 360
 
 let typewriterTimer: ReturnType<typeof setTimeout> | undefined
 const fallbackLine: TypewriterLineInfo = {
@@ -26,9 +27,11 @@ const activeLineInfo = computed(() => lines[activeLineIndex.value] ?? lines[0] ?
 // 使用 Array.from 按用户能看到的字符切分
 const activeLineCharacters = computed(() => Array.from(activeLineInfo.value.text))
 const visibleText = computed(() => activeLineCharacters.value.slice(0, visibleCharacterCount.value).join(''))
-// 每句台词可以单独控制输入和删除速度  未配置时回退到全局默认速度
+// 每句台词可以单独控制输入 删除和停留时长  未配置时回退到全局默认值
 const activeLineTypingSpeedMs = computed(() => activeLineInfo.value.typingSpeedMs ?? TYPE_SPEED_MS)
 const activeLineDeletingSpeedMs = computed(() => activeLineInfo.value.deletingSpeedMs ?? DELETE_SPEED_MS)
+const activeLineHoldAfterTypedMs = computed(() => activeLineInfo.value.holdAfterTypedMs ?? HOLD_AFTER_TYPED_MS)
+const activeLineHoldBeforeNextLineMs = computed(() => activeLineInfo.value.holdBeforeNextLineMs ?? HOLD_BEFORE_NEXT_LINE_MS)
 
 const clearTypewriterTimer = () => {
     if (typewriterTimer) {
@@ -58,7 +61,7 @@ const runTypewriterStep = () => {
         else {
             isDeletingCurrentLine.value = false
             activeLineIndex.value = (activeLineIndex.value + 1) % lines.length
-            queueNextTypewriterStep(HOLD_BEFORE_NEXT_LINE_MS)
+            queueNextTypewriterStep(activeLineHoldBeforeNextLineMs.value)
             return
         }
     }
@@ -71,12 +74,12 @@ const runTypewriterStep = () => {
 
     // 完整显示阶段  下一步进入删除状态
     isDeletingCurrentLine.value = true
-    queueNextTypewriterStep(HOLD_AFTER_TYPED_MS)
+    queueNextTypewriterStep(activeLineHoldAfterTypedMs.value)
 }
 
 onMounted(() => {
     if (lines.length > 0) {
-        queueNextTypewriterStep(HOLD_BEFORE_NEXT_LINE_MS)
+        queueNextTypewriterStep(activeLineHoldBeforeNextLineMs.value)
     }
 })
 
