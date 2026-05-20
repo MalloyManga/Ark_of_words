@@ -100,3 +100,4 @@ Build the first UI-only homepage prototype for Ark_of_words so the project can r
 
 - PRTS wiki API sample JSON still needs to be fetched into `app/data` once network access is available.
 - `kanaHint` is a future derived field and should not be hard-coded as spaced kana strings in the final typing model.
+- Practice difficulty should use difficulty-to-voice-index groups, for example `easy: [14, 15, 16, 17, 18]`, so a practice group can combine the same difficulty band across multiple operators. Operators with non-standard voice order can be excluded from the first implementation instead of adding override logic.
