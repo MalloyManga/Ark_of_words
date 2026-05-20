@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import operatorFrameBack from '../assets/imgs/back.png'
 import operatorFrameFront from '../assets/imgs/front.png'
+import casterProfessionIcon from '../assets/imgs/Caster.png'
 import mostimaPortrait from '../assets/imgs/立绘_莫斯提马_1.png'
 import type { CSSProperties } from 'vue'
 import type { PrtsVoiceLine } from '~/utils/prtsVoiceDataExtractor'
@@ -18,6 +19,7 @@ interface MockOperator {
     displayName: string
     portrait: string
     portraitCrop: OperatorPortraitCrop
+    professionIconSrc: string
     voiceLines: readonly PrtsVoiceLine[]
 }
 
@@ -39,9 +41,10 @@ const mockOperators: readonly MockOperator[] = Array.from({ length: 30 }, (_, op
 
     return {
         id: `operator-${serialNumber}`,
-        displayName: operatorIndex === 0 ? wisadelVoiceData.operatorName : `演习干员 ${serialNumber}`,
+        displayName: operatorIndex === 0 ? '莫斯提马' : `演习干员 ${serialNumber}`,
         portrait: mostimaPortrait,
         portraitCrop: defaultOperatorPortraitCrop,
+        professionIconSrc: casterProfessionIcon,
         voiceLines: wisadelVoiceData.lines,
     }
 })
@@ -145,9 +148,16 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                             <img class="pointer-events-none absolute left-[-6.5%] top-0 z-20 w-[114%] max-w-none select-none"
                                 :src="operatorFrameFront" alt=""
                                 draggable="false">
+                            <img class="pointer-events-none absolute left-[6%] top-[1%] z-30 w-[22%] select-none"
+                                :src="operator.professionIconSrc" alt=""
+                                draggable="false">
+                            <span
+                                class="pointer-events-none absolute bottom-[3%] right-[7%] z-30 text-right text-[18px] leading-none text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                {{ operator.displayName }}
+                            </span>
 
                             <span v-if="activeOperatorId === operator.id"
-                                class="pointer-events-none absolute inset-0 z-30 border-2 border-emerald-950" />
+                                class="pointer-events-none absolute inset-0 z-40 border-2 border-emerald-950" />
                         </button>
                     </div>
                 </section>
