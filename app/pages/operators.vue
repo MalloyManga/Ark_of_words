@@ -152,7 +152,8 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                                 :src="operator.professionIconSrc" alt=""
                                 draggable="false">
                             <span
-                                class="pointer-events-none absolute bottom-[3%] right-[7%] z-30 text-right text-[18px] leading-none text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                class="pointer-events-none absolute bottom-[3%] right-[7%] z-30 text-right leading-none text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+                                :class="activeOperator ? 'text-[clamp(6px,0.75vw,14px)]' : 'text-[clamp(10px,1.15vw,18px)]'">
                                 {{ operator.displayName }}
                             </span>
 
