@@ -16,9 +16,18 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: RobotoMono;
+  src: url("@/assets/fonts/RobotoMono-VariableFont_wght.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 @theme {
   --font-fredoka: Fredoka, sans-serif;
   --font-zh-playful: ZCOOLKuaiLe, sans-serif;
+  --font-romaji: RobotoMono, sans-serif;
 }
 
 @layer base {
