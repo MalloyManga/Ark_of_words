@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
+import type { PracticeDifficulty } from '~/constants/practiceDifficulties'
 
 interface DifficultyOption {
     value: PracticeDifficulty
