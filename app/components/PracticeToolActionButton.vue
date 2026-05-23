@@ -4,12 +4,16 @@ interface PracticeToolActionButtonProps {
 }
 
 const { label } = defineProps<PracticeToolActionButtonProps>()
+
+const emit = defineEmits<{
+    click: []
+}>()
 </script>
 
 <template>
-    <span
-        class="inline-flex shrink-0 text-[#2563eb] transition-colors duration-150 hover:text-emerald-600 active:text-emerald-600 cursor-pointer"
-        role="img" :aria-label="label">
+    <button type="button"
+        class="inline-flex shrink-0 cursor-pointer items-center justify-center text-[#2563eb] transition-colors duration-150 hover:text-emerald-600"
+        :aria-label="label" @click.stop="emit('click')">
         <slot />
-    </span>
+    </button>
 </template>

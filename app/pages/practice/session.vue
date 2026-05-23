@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { practiceDisplayModes } from '~/constants/practiceDisplayModes'
+import type { PracticeDisplayMode } from '~/constants/practiceDisplayModes'
 import { practiceToolActions } from '~/constants/practiceToolActions'
+import type { PracticeToolActionId } from '~/constants/practiceToolActions'
+import mockPracticeAudioUrl from '~/data/编入队伍.wav?url'
 
 type PracticeDifficulty = 'easy' | 'normal' | 'hard' | 'custom'
 type CharacterStatus = 'pending' | 'correct' | 'wrong'
@@ -11,9 +15,10 @@ interface DifficultyDetail {
 
 interface DisplayCharacter {
     value: string
+    submittedValue?: string // 隐藏原文时用已提交字符替换同位置占位
     status: CharacterStatus // 当前字符和已提交输入之间的判定状态
-    isCursorBefore: boolean // 用于显示当前的模拟光标
-    isExtraSubmittedCharacter: boolean // 用户多输入的字符会追加显示在原文后方
+    isCursorBefore: boolean // 用于显示当前模拟光标
+    isExtraSubmittedCharacter: boolean // 日文模式保留多输入字符的追加显示
 }
 
 interface DisplayCharacterChunk {
@@ -21,21 +26,35 @@ interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
-const {
-    currentPracticeAudioPath,
-    currentPracticeChineseText,
-    targetPracticeText,
-    currentPracticeLineTitle,
-    kanaHint,
-} = usePracticeLineSource()
+interface PracticeTextUnit {
+    id: string
+    romajiText: string
+    sourceText: string
+    kanaText: string
+}
+
+interface PracticeTextUnitDisplay {
+    id: string
+    unit: PracticeTextUnit
+    startInputIndex: number
+    endInputIndex: number
+    status: CharacterStatus
+    isActive: boolean
+    characters: readonly DisplayCharacter[]
+    visibleText: string
+}
 
 const route = useRoute()
 
 const inputReceiverRef = useTemplateRef<HTMLInputElement>('inputReceiverRef')
+const practiceAudioRef = useTemplateRef<HTMLAudioElement>('practiceAudioRef')
 
 const submittedText = ref('')
 const pendingInputText = ref('')
 const isComposingText = ref(false)
+const activeDisplayModeIndex = ref(0)
+const isRomajiModeEnabled = ref(false)
+const isPracticeInfoModalOpen = ref(false)
 let compositionCommitSubmitTimer: ReturnType<typeof window.setTimeout> | undefined
 let isWaitingForCompositionCommitSubmit = false
 
@@ -58,7 +77,7 @@ const difficultyDetails: Record<PracticeDifficulty, DifficultyDetail> = {
     },
 }
 
-// 规范化传入的难度系数 得到规范的难度 detail
+// 规范化传入的难度参数 得到稳定的难度配置
 const isPracticeDifficulty = (value: unknown): value is PracticeDifficulty => {
     return typeof value === 'string' && value in difficultyDetails
 }
@@ -68,6 +87,34 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
 const selectedDifficultyDetail = computed(() => difficultyDetails[selectedDifficulty.value])
+const {
+    currentPracticeAudioPath,
+    currentPracticeChineseText,
+    currentPracticeLineTitle,
+    targetPracticeText,
+    kanaHint,
+    practiceInfoItems,
+} = usePracticeLineSource({
+    difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
+})
+
+const activeDisplayMode = computed<PracticeDisplayMode>(() => {
+    return practiceDisplayModes[activeDisplayModeIndex.value] ?? practiceDisplayModes[0]
+})
+const shouldShowOriginalText = computed(() => activeDisplayMode.value.shouldShowOriginalText)
+const shouldShowKanaHint = computed(() => activeDisplayMode.value.shouldShowKanaHint)
+const shouldShowTranslation = computed(() => activeDisplayMode.value.shouldShowTranslation)
+
+// 罗马字暂时用手写 mock 代替后端/第三方库生成结果
+// 后续真正接库时 这个字符串会被 PracticeTextUnit[] 数据替换
+const romanizedPracticePlaceholder = 'atashi ga shinndara minmaikinn de minnna ni yakijagaimo wo ogotteoite'
+
+const romajiAllowedInputPattern = /^[\x00-\x7F]*$/u
+const romajiInputWarningMessage = '罗马字模式请使用英文输入法'
+
+const activeTargetPracticeText = computed(() => {
+    return isRomajiModeEnabled.value ? romanizedPracticePlaceholder : targetPracticeText
+})
 
 // backlog 待后续结合正确 预览 错误状态统一调整配色方案
 const displayCharacterTextClasses: Record<CharacterStatus, string> = {
@@ -77,36 +124,132 @@ const displayCharacterTextClasses: Record<CharacterStatus, string> = {
 }
 const getDisplayCharacterTextClass = (status: CharacterStatus) => displayCharacterTextClasses[status]
 
-const displayChunkEndingCharacters = new Set(['、', '。', '！', '？', '!', '?', '」', '』', '）', ')'])
-const displayChunkNaturalBreakCharacters = new Set([' '])
-
-const maximumDisplayChunkCharacterCount = 14 // 兜底换行长度
-
-/**
- * 方案 A 的核心是连续字符串判定
- * submittedText 是唯一已经提交的输入源
- * pendingInputText 只表示 IME 候选或待确认文本 不参与原文判定
- * targetPracticeText 中的空格只做视觉停顿和光标跳过 不需要用户输入
- */
 const inputWhitespacePattern = /\s/gu
 const targetSpacePattern = /\s/u
 
-/**
- * 清除所有的用户输入空格 换行 等等
- */
 const normalizeInputText = (text: string) => text.replace(inputWhitespacePattern, '')
-
 const isTargetSpaceCharacter = (character: string) => targetSpacePattern.test(character)
 
-const targetTextCharacters = computed(() => Array.from(targetPracticeText))
+const targetTextCharacters = computed(() => Array.from(activeTargetPracticeText.value))
 const targetInputCharacters = computed(() => {
     return targetTextCharacters.value.filter((character) => !isTargetSpaceCharacter(character))
 })
 const submittedTextCharacters = computed(() => Array.from(submittedText.value))
 
+const getDisplayCharacterValue = (character: DisplayCharacter) => {
+    // 显示原文状态下 和 超出文本的字符 返回原字符
+    if (shouldShowOriginalText.value || character.isExtraSubmittedCharacter) {
+        return character.value
+    }
+
+    // 已经提交了原文的情况下 显示原文
+    if (character.submittedValue !== undefined) {
+        return character.submittedValue
+    }
+
+    // 隐藏原文状态下 无原文说明为空格 有原文替换为 _
+    return isTargetSpaceCharacter(character.value) ? ' ' : '_'
+}
+
+const createMockRomajiPracticeUnits = (romajiText: string): PracticeTextUnit[] => {
+    return romajiText.split(' ').filter(Boolean).map((romajiUnitText, romajiUnitIndex) => {
+        return {
+            id: `mock-romaji-unit-${romajiUnitIndex}`,
+            romajiText: romajiUnitText,
+            sourceText: '', // 这里 sourceText 之后需要进行对应回原文
+            kanaText: '',
+        }
+    })
+}
+
+const mockRomajiPracticeUnits = computed<PracticeTextUnit[]>(() => {
+    return createMockRomajiPracticeUnits(romanizedPracticePlaceholder)
+})
+
+// 第一个错误字符决定罗马字输入锁定位置和 active unit
+const firstRomajiSubmittedErrorIndex = computed(() => {
+    if (!isRomajiModeEnabled.value) {
+        return -1
+    }
+    return submittedTextCharacters.value.findIndex((submittedCharacter, characterIndex) => {
+        return submittedCharacter !== targetInputCharacters.value[characterIndex]
+    })
+})
+const isRomajiInputLockedByError = computed(() => firstRomajiSubmittedErrorIndex.value !== -1)
+const isRomajiInputCompleteAndCorrect = computed(() => {
+    return isRomajiModeEnabled.value && isSubmittedTextCompleteAndCorrect(submittedText.value)
+})
+
+// 将 submittedText 按照 unit 放入整句后的区间提取对应文本 并逐字符判断正误
+const getRomajiUnitStatus = (unit: PracticeTextUnit, startInputIndex: number, endInputIndex: number): CharacterStatus => {
+    const unitCharacters = Array.from(unit.romajiText)
+    const submittedCharactersInUnit = submittedTextCharacters.value.slice(startInputIndex, endInputIndex)
+
+    if (submittedCharactersInUnit.some((character, characterIndex) => character !== unitCharacters[characterIndex])) {
+        return 'wrong'
+    }
+
+    if (submittedCharactersInUnit.length < unitCharacters.length) {
+        return 'pending'
+    }
+
+    return 'correct'
+}
+
+const getRomajiUnitDisplayCharacters = (unit: PracticeTextUnit, startInputIndex: number): DisplayCharacter[] => {
+    return Array.from(unit.romajiText).map((targetCharacter, characterIndex) => {
+        const inputCharacterIndex = startInputIndex + characterIndex
+        const submittedCharacter = submittedTextCharacters.value[inputCharacterIndex]
+
+        return {
+            value: targetCharacter,
+            submittedValue: submittedCharacter,
+            status: submittedCharacter === undefined
+                ? 'pending'
+                : submittedCharacter === targetCharacter ? 'correct' : 'wrong',
+            isCursorBefore: inputCharacterIndex === submittedTextCharacters.value.length
+                && submittedTextCharacters.value.length <= targetInputCharacters.value.length,
+            isExtraSubmittedCharacter: false,
+        }
+    })
+}
+
+const romajiPracticeUnitDisplays = computed<PracticeTextUnitDisplay[]>(() => {
+    let passedInputCharacterCount = 0
+    const currentInputCharacterIndex = isRomajiInputLockedByError.value
+        ? firstRomajiSubmittedErrorIndex.value
+        : submittedTextCharacters.value.length
+
+    return mockRomajiPracticeUnits.value.map((unit) => {
+        const unitInputCharacterCount = Array.from(unit.romajiText).length
+        const startInputIndex = passedInputCharacterCount
+        const endInputIndex = passedInputCharacterCount + unitInputCharacterCount
+        const isActive = currentInputCharacterIndex >= startInputIndex && currentInputCharacterIndex < endInputIndex
+
+        passedInputCharacterCount = endInputIndex
+
+        // characters 始终保存拆分后的字符状态
+        // visibleText 只负责 inactive 且显示原文时的整词展示
+        return {
+            id: unit.id,
+            unit,
+            startInputIndex,
+            endInputIndex,
+            status: getRomajiUnitStatus(unit, startInputIndex, endInputIndex),
+            isActive,
+            characters: getRomajiUnitDisplayCharacters(unit, startInputIndex),
+            visibleText: unit.romajiText,
+        }
+    })
+})
+
+const displayChunkEndingCharacters = new Set(['、', '。', '！', '？', '!', '?', '」', '』', '）', ')'])
+const displayChunkNaturalBreakCharacters = new Set([' '])
+const maximumDisplayChunkCharacterCount = 14 // 兜底换行长度
+
 /**
- * 根据已经提交的可输入字符数寻找光标在原文中的位置
- * 如果提交数量已经覆盖所有可输入字符 则返回原文末尾
+ * 根据已经提交的可输入字符数寻找光标在目标文本中的位置
+ * 目标文本里的空格只做视觉分隔 不需要用户输入
  */
 const getCursorTargetCharacterIndex = (submittedCharacterCount: number) => {
     let passedInputCharacterCount = 0
@@ -171,6 +314,7 @@ const displayCharacters = computed<DisplayCharacter[]>(() => {
 
         characters.push({
             value: targetCharacter,
+            submittedValue: submittedCharacter,
             status,
             isCursorBefore: targetCharacterIndex === simulatedCursorTargetCharacterIndex.value
                 && submittedTextCharacters.value.length <= targetInputCharacters.value.length, // 将输入的文本限制在原文本的长度 并判断是否为光标前文本
@@ -183,17 +327,15 @@ const displayCharacters = computed<DisplayCharacter[]>(() => {
         }
     })
 
-    /**
-     * 第二轮处理多输入字符
-     * 如果提交字符数超过目标可输入字符数
-     * 多出来的字符不再参与原文位置匹配
-     * 直接追加到原文后方并标红 光标也会落到这些额外字符之后
-     */
-    const extraSubmittedCharacters = submittedTextCharacters.value.slice(targetInputCharacters.value.length)
+    // 日文模式保留多输入显示 罗马字模式已经在输入层锁定不允许超出
+    const extraSubmittedCharacters = isRomajiModeEnabled.value
+        ? []
+        : submittedTextCharacters.value.slice(targetInputCharacters.value.length)
 
     extraSubmittedCharacters.forEach((submittedCharacter) => {
         characters.push({
             value: submittedCharacter,
+            submittedValue: submittedCharacter,
             status: 'wrong',
             isCursorBefore: false,
             isExtraSubmittedCharacter: true,
@@ -221,8 +363,6 @@ const displayCharacterChunks = computed<DisplayCharacterChunk[]>(() => {
         const isNaturalSpaceBreak = displayChunkNaturalBreakCharacters.has(character.value)
         const isLengthFallbackBreak = chunkCharacters.length >= maximumDisplayChunkCharacterCount
         const isLastCharacter = characterIndex === displayCharacters.value.length - 1
-
-        // console.log(`目前处理${character.value},状态：${isPunctuationBreak},${isNaturalSpaceBreak},${isLengthFallbackBreak},${isLastCharacter}.`)
 
         // 普通字符就 return 进入下一轮 遇到需要换行的地方就打包之前的 charsArr 进 chunk 并清空 charsArr 进入下一轮
         if (!isPunctuationBreak && !isNaturalSpaceBreak && !isLengthFallbackBreak && !isLastCharacter) {
@@ -264,17 +404,78 @@ const syncPendingInputElementValue = (inputElement: HTMLInputElement) => {
     }
 }
 
+const warnRomajiInputMethod = () => {
+    console.log(romajiInputWarningMessage)
+}
+
 /**
- * 隐藏 input 只负责接收浏览器和系统输入法交给页面的真实文本
- * 不使用 v-model 和 :value 是因为 Vue 反向写回 DOM 会打断 IME 组合态
- * 首字符重复通常就来自 input 事件和 DOM patch 同时介入
- * 因此这里把 input 当成非受控接收器 只从原生事件读取 不主动绑定它的值
+ * 罗马字模式绕过日文 IME 的待确认流程
+ * 输入直接追加到 submittedText 错字或完成后立即锁住
+ */
+const submitDirectRomajiInput = (inputElement: HTMLInputElement) => {
+    const normalizedInputValue = normalizeInputText(inputElement.value)
+    pendingInputText.value = ''
+    clearInputReceiverValue()
+
+    if (!normalizedInputValue) {
+        return
+    }
+
+    if (isRomajiInputLockedByError.value || isRomajiInputCompleteAndCorrect.value) {
+        return
+    }
+
+    if (!romajiAllowedInputPattern.test(normalizedInputValue)) {
+        warnRomajiInputMethod()
+        return
+    }
+
+    const acceptedInputCharacters: string[] = []
+
+    for (const inputCharacter of Array.from(normalizedInputValue)) {
+        const targetCharacterIndex = submittedTextCharacters.value.length + acceptedInputCharacters.length
+        const targetCharacter = targetInputCharacters.value[targetCharacterIndex]
+
+        if (targetCharacter === undefined) {
+            break
+        }
+
+        acceptedInputCharacters.push(inputCharacter)
+
+        if (inputCharacter !== targetCharacter) {
+            break
+        }
+    }
+
+    const acceptedInputValue = acceptedInputCharacters.join('')
+
+    if (!acceptedInputValue) {
+        return
+    }
+
+    const nextSubmittedText = `${submittedText.value}${acceptedInputValue}`
+    submittedText.value = nextSubmittedText
+
+    if (isSubmittedTextCompleteAndCorrect(nextSubmittedText)) {
+        console.log('当前练习文本已完全正确')
+    }
+}
+
+/**
+ * 隐藏 input 是日文 IME 和罗马字直接输入的共同入口
+ * 具体提交方式由当前输入模式分流
  */
 const syncPendingInputText = (event: Event) => {
     const inputElement = event.target
     if (!(inputElement instanceof HTMLInputElement)) {
         return
     }
+
+    if (isRomajiModeEnabled.value) {
+        submitDirectRomajiInput(inputElement)
+        return
+    }
+
     syncPendingInputElementValue(inputElement)
 }
 
@@ -285,6 +486,13 @@ const syncPendingInputText = (event: Event) => {
  * 注意这里只更新待确认文本 不触发原文检测
  */
 const syncPendingCompositionText = (event: CompositionEvent) => {
+    if (isRomajiModeEnabled.value) {
+        pendingInputText.value = ''
+        clearInputReceiverValue()
+        warnRomajiInputMethod()
+        return
+    }
+
     const inputElement = event.target
 
     if (inputElement instanceof HTMLInputElement && inputElement.value) {
@@ -309,7 +517,6 @@ const confirmPendingInput = () => {
         return
     }
 
-    // 方案 A 不再按片段覆盖
     // 每次确认都把候选词追加到同一个提交字符串中
     const nextSubmittedText = `${submittedText.value}${normalizedPendingInputText}`
     submittedText.value = nextSubmittedText
@@ -366,20 +573,105 @@ const rollbackSubmittedCharacter = () => {
     nextTick(focusInputReceiver)
 }
 
+const playPracticeAudio = async () => {
+    const audioElement = practiceAudioRef.value
+
+    if (!audioElement) {
+        return
+    }
+
+    audioElement.currentTime = 0
+    await audioElement.play()
+}
+
+const cycleDisplayMode = () => {
+    activeDisplayModeIndex.value = (activeDisplayModeIndex.value + 1) % practiceDisplayModes.length
+}
+
+const toggleRomajiMode = () => {
+    // 输入方式切换后目标文本会变化 旧提交进度必须清空
+    submittedText.value = ''
+    isRomajiModeEnabled.value = !isRomajiModeEnabled.value
+    pendingInputText.value = ''
+    clearInputReceiverValue()
+    nextTick(focusInputReceiver)
+}
+
+const closePracticeInfoModal = () => {
+    isPracticeInfoModalOpen.value = false
+}
+
+const handlePracticeToolAction = async (actionId: PracticeToolActionId) => {
+    if (actionId === 'audio') {
+        await playPracticeAudio()
+        return
+    }
+
+    if (actionId === 'displayMode') {
+        cycleDisplayMode()
+        return
+    }
+
+    if (actionId === 'romaji') {
+        toggleRomajiMode()
+        return
+    }
+
+    if (actionId === 'info') {
+        isPracticeInfoModalOpen.value = true
+        return
+    }
+}
+
+const handleWindowKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+        closePracticeInfoModal()
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleWindowKeydown)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleWindowKeydown)
+})
+
 const handleCompositionStart = () => {
+    if (isRomajiModeEnabled.value) {
+        isComposingText.value = false
+        pendingInputText.value = ''
+        clearInputReceiverValue()
+        warnRomajiInputMethod()
+        return
+    }
+
     isComposingText.value = true
 }
 const handleCompositionUpdate = (event: CompositionEvent) => {
     syncPendingCompositionText(event)
 }
 const handleCompositionEnd = (event: CompositionEvent) => {
+    if (isRomajiModeEnabled.value) {
+        isComposingText.value = false
+        pendingInputText.value = ''
+        clearInputReceiverValue()
+        warnRomajiInputMethod()
+        return
+    }
+
     isComposingText.value = false
     syncPendingInputText(event)
     confirmPendingInputAfterCompositionCommit()
 }
 
 const handleInputKeydown = (event: KeyboardEvent) => {
-    if ((event.key === ' ' || event.code === 'Space') && !isComposingText.value && !event.isComposing) {
+    if (
+        !isRomajiModeEnabled.value
+        && (event.key === ' ' || event.code === 'Space')
+        && !isComposingText.value
+        && !event.isComposing
+    ) {
         event.preventDefault()
         return
     }
@@ -422,7 +714,8 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                 </NuxtLink>
 
                 <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 text-right">
-                    <p class="font-zh-playful max-w-[min(52vw,28rem)] truncate text-sm font-bold text-emerald-700/75 sm:text-base">
+                    <p
+                        class="font-zh-playful max-w-[min(52vw,28rem)] truncate text-sm font-bold text-emerald-700/75 sm:text-base">
                         {{ currentPracticeLineTitle }}
                     </p>
                     <span class="font-zh-playful text-sm font-black" :class="selectedDifficultyDetail.classes">
@@ -435,6 +728,8 @@ const handleInputKeydown = (event: KeyboardEvent) => {
             </header>
 
             <div class="flex flex-1 flex-col items-center justify-center text-center" @click="focusInputReceiver">
+                <audio ref="practiceAudioRef" :src="mockPracticeAudioUrl" preload="auto" class="hidden" />
+
                 <p v-if="currentPracticeAudioPath" class="sr-only">
                     {{ currentPracticeAudioPath }}
                 </p>
@@ -442,31 +737,83 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                     {{ currentPracticeChineseText }}
                 </p>
 
-                <p class="text-sm font-medium tracking-[0.2em] text-emerald-700/70">
-                    {{ kanaHint }}
-                </p>
-
-                <!-- 主体 原文部分 -->
-                <div
-                    class="mt-4 flex w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-4xl leading-[1.28] text-[#2563eb]">
-                    <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
-                        <span class="inline-flex items-end">
-                            <template v-for="(character, index) in chunk.characters"
-                                :key="`${chunk.id}-${character.value}-${index}`">
-                                <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
-                                <span class="inline-flex min-w-[1.12em] justify-center"
-                                    :class="getDisplayCharacterTextClass(character.status)">
-                                    {{ character.value }}
-                                </span>
-                            </template>
-                            <span v-if="isCursorAfterAllCharacters && chunkIndex === displayCharacterChunks.length - 1"
-                                class="typing-caret" aria-hidden="true" />
-                        </span>
-                    </template>
+                <div class="flex min-h-7 w-full items-center justify-center">
+                    <p v-show="shouldShowKanaHint" class="text-sm font-medium tracking-[0.2em] text-emerald-700/70">
+                        {{ kanaHint }}
+                    </p>
+                    <p v-show="!shouldShowKanaHint" class="sr-only">
+                        {{ kanaHint }}
+                    </p>
                 </div>
 
-                <!-- 待确认 IME候选词 -->
-                <div class="relative mt-9 flex min-h-8 w-full justify-center">
+                <!-- 主体原文展示暂时保留在页面中 待用户审查稳定后再拆 -->
+                <div class="flex min-h-36 w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-[#2563eb]"
+                    :class="isRomajiModeEnabled
+                        ? 'font-fredoka text-2xl leading-[1.18] sm:text-3xl lg:text-[32px]'
+                        : 'text-4xl leading-[1.28]'">
+
+                    <!-- 罗马字输入模式 -->
+                    <div v-if="isRomajiModeEnabled"
+                        class="flex max-w-full wrap-break-word flex-wrap items-end justify-center gap-x-[0.42em] gap-y-3">
+                        <span v-for="unitDisplay in romajiPracticeUnitDisplays" :key="unitDisplay.id"
+                            class="inline-flex items-end gap-x-[0.08em]">
+
+                            <!-- 显示原文状态下 当前 activeUnit 拆分内部 characters 逐 span 渲染 -->
+                            <template v-if="unitDisplay.isActive">
+                                <template v-for="(character, index) in unitDisplay.characters"
+                                    :key="`${unitDisplay.id}-${character.value}-${index}`">
+                                    <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
+                                    <span class="inline-flex justify-center font-romaji"
+                                        :class="getDisplayCharacterTextClass(character.status)">
+                                        {{ getDisplayCharacterValue(character) }}
+                                    </span>
+                                </template>
+                            </template>
+
+                            <!-- 显示原文状态下 非 activeUnit 直接显示原文不做拆分 -->
+                            <template v-else-if="shouldShowOriginalText">
+                                <span class="inline-flex size-auto justify-center font-romaji"
+                                    :class="getDisplayCharacterTextClass(unitDisplay.status)">
+                                    {{ unitDisplay.visibleText }}
+                                </span>
+                            </template>
+
+                            <!-- 隐藏原文状态下 全部替换为 _ -->
+                            <template v-else>
+                                <span v-for="(character, index) in unitDisplay.characters"
+                                    :key="`${unitDisplay.id}-placeholder-${index}`"
+                                    class="inline-flex size-auto justify-center font-romaji"
+                                    :class="getDisplayCharacterTextClass(character.status)">
+                                    {{ getDisplayCharacterValue(character) }}
+                                </span>
+                            </template>
+                        </span>
+
+                        <span v-if="isCursorAfterAllCharacters" class="typing-caret" aria-hidden="true" />
+                    </div>
+
+                    <!-- 假名输入模式 -->
+                    <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center">
+                        <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
+                            <span class="inline-flex items-end">
+                                <template v-for="(character, index) in chunk.characters"
+                                    :key="`${chunk.id}-${character.value}-${index}`">
+                                    <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
+                                    <span class="inline-flex min-w-[1.12em] justify-center"
+                                        :class="getDisplayCharacterTextClass(character.status)">
+                                        {{ getDisplayCharacterValue(character) }}
+                                    </span>
+                                </template>
+                                <span
+                                    v-if="isCursorAfterAllCharacters && chunkIndex === displayCharacterChunks.length - 1"
+                                    class="typing-caret" aria-hidden="true" />
+                            </span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 待确认 IME 候选词 -->
+                <div class="relative mt-7 flex min-h-8 w-full justify-center">
                     <p v-if="pendingInputText" class="text-sm font-medium tracking-normal text-[#2563eb]">
                         待确认：<span class="border-b border-[#2563eb] px-1">{{ pendingInputText }}</span>
                     </p>
@@ -477,19 +824,24 @@ const handleInputKeydown = (event: KeyboardEvent) => {
                 </div>
 
                 <!-- 当前语音的中文译文 -->
-                <p class="font-zh-playful mt-6 text-base font-bold text-emerald-700/75 sm:text-lg">
-                    {{ currentPracticeChineseText || '暂无中文译文' }}
-                </p>
-
-                <!-- 下方工具按钮 -->
-                <div class="mt-7 flex w-full max-w-md items-center justify-center gap-5">
-                    <PracticeToolActionButton v-for="action in practiceToolActions" :key="action.label"
-                        :label="action.label">
-                        <component :is="action.icon" class="size-6" aria-hidden="true" />
-                    </PracticeToolActionButton>
+                <div class="mt-6 flex min-h-8 w-full items-center justify-center">
+                    <p v-show="shouldShowTranslation"
+                        class="font-zh-playful text-base font-bold text-emerald-700/75 sm:text-lg">
+                        {{ currentPracticeChineseText || '暂无中文译文' }}
+                    </p>
+                    <p v-show="!shouldShowTranslation" class="sr-only">
+                        {{ currentPracticeChineseText || '暂无中文译文' }}
+                    </p>
                 </div>
+
+                <p class="sr-only">
+                    {{ activeDisplayMode.label }}
+                </p>
+                <PracticeToolBar :actions="practiceToolActions" @action-click="handlePracticeToolAction" />
             </div>
 
+            <PracticeInfoModal :is-open="isPracticeInfoModalOpen" title="当前语音信息" :items="practiceInfoItems"
+                @close="closePracticeInfoModal" />
         </section>
     </main>
 </template>
@@ -501,8 +853,7 @@ const handleInputKeydown = (event: KeyboardEvent) => {
     flex: 0 0 0;
     position: relative;
     width: 0;
-    height: 1.45em;
-    transform: translateY(0.18em);
+    height: 1.3em;
 }
 
 .typing-caret::before {
