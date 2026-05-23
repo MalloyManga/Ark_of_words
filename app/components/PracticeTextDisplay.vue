@@ -111,7 +111,7 @@ const {
         </div>
 
         <!-- 假名输入模式 -->
-        <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center">
+        <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center font-mono">
             <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
                 <span class="inline-flex items-end">
                     <template v-for="(character, index) in chunk.characters"
