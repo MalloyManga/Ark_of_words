@@ -31,6 +31,21 @@
 }
 
 @layer base {
+  html,
+  body,
+  *,
+  *::before,
+  *::after {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
   img,
   svg,
   canvas,
