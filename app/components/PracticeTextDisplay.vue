@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { CharacterStatus } from '~/constants/practiceCharacterStatus'
+import type { PracticeJudgementStatus } from '~/constants/practiceCharacterStatus'
 import type { PracticeReadingUnit } from '~/composables/usePracticeLineSource'
 
 interface DisplayCharacter {
     value: string
     submittedValue?: string
-    status: CharacterStatus
+    status: PracticeJudgementStatus
     isCursorBefore: boolean
     isExtraSubmittedCharacter: boolean
 }
@@ -15,12 +15,12 @@ interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
-interface PracticeTextUnitDisplay {
+interface PracticeRomajiUnitDisplay {
     id: string
     unit: PracticeReadingUnit
     startInputIndex: number
     endInputIndex: number
-    status: CharacterStatus
+    judgementStatus: PracticeJudgementStatus
     isActive: boolean
     characters: readonly DisplayCharacter[]
     visibleText: string
@@ -31,19 +31,19 @@ interface PracticeKanaUnitDisplay {
     sourceText: string
     kanaText: string
     characters: readonly DisplayCharacter[]
-    status: CharacterStatus
+    judgementStatus: PracticeJudgementStatus
 }
 
 interface PracticeTextDisplayProps {
     isRomajiModeEnabled: boolean
-    romajiPracticeUnitDisplays: readonly PracticeTextUnitDisplay[]
+    romajiPracticeUnitDisplays: readonly PracticeRomajiUnitDisplay[]
     kanaPracticeUnitDisplays: readonly PracticeKanaUnitDisplay[]
-    displayCharacterChunks: readonly DisplayCharacterChunk[]
+    fallbackDisplayCharacterChunks: readonly DisplayCharacterChunk[]
     kanaHint: string
     shouldShowKanaHint: boolean
     shouldShowOriginalText: boolean
     isCursorAfterAllCharacters: boolean
-    getDisplayCharacterTextClass: (status: CharacterStatus) => string
+    getDisplayCharacterTextClass: (status: PracticeJudgementStatus) => string
     getDisplayCharacterValue: (character: DisplayCharacter) => string
 }
 
@@ -51,7 +51,7 @@ const {
     isRomajiModeEnabled,
     romajiPracticeUnitDisplays,
     kanaPracticeUnitDisplays,
-    displayCharacterChunks,
+    fallbackDisplayCharacterChunks,
     kanaHint,
     shouldShowKanaHint,
     shouldShowOriginalText,
@@ -116,7 +116,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
                     <!-- 显示原文状态下 非 activeUnit 直接显示原文不做拆分 -->
                     <template v-else-if="shouldShowOriginalText">
                         <span class="inline-flex size-auto justify-center font-romaji"
-                            :class="getDisplayCharacterTextClass(unitDisplay.status)">
+                            :class="getDisplayCharacterTextClass(unitDisplay.judgementStatus)">
                             {{ unitDisplay.visibleText }}
                         </span>
                     </template>
@@ -162,7 +162,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
         </div>
         <!-- 罗马字显示有问题时 这里兜底 -->
         <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center pt-1 font-mono">
-            <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
+            <template v-for="(chunk, chunkIndex) in fallbackDisplayCharacterChunks" :key="chunk.id">
                 <span class="inline-flex items-end">
                     <template v-for="(character, index) in chunk.characters"
                         :key="`${chunk.id}-${character.value}-${index}`">
@@ -172,7 +172,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
                             {{ getDisplayCharacterValue(character) }}
                         </span>
                     </template>
-                    <span v-if="isCursorAfterAllCharacters && chunkIndex === displayCharacterChunks.length - 1"
+                    <span v-if="isCursorAfterAllCharacters && chunkIndex === fallbackDisplayCharacterChunks.length - 1"
                         class="typing-caret" aria-hidden="true" />
                 </span>
             </template>

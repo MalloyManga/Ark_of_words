@@ -1,12 +1,12 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
-import { practiceCharacterTextClasses } from '~/constants/practiceCharacterStatus'
+import { practiceJudgementTextClasses } from '~/constants/practiceCharacterStatus'
 import type { PracticeReadingUnit } from '~/composables/usePracticeLineSource'
-import type { CharacterStatus } from '~/constants/practiceCharacterStatus'
+import type { PracticeJudgementStatus } from '~/constants/practiceCharacterStatus'
 
 export interface DisplayCharacter {
     value: string
     submittedValue?: string // 隐藏原文时用已提交字符替换同位置占位
-    status: CharacterStatus // 当前字符和已提交输入之间的判定状态
+    status: PracticeJudgementStatus // 当前字符和已提交输入之间的判定状态
     isCursorBefore: boolean // 用于显示当前模拟光标
     isExtraSubmittedCharacter: boolean // 日文模式保留多输入字符的追加显示
 }
@@ -16,12 +16,12 @@ export interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
-export interface PracticeTextUnitDisplay {
+export interface PracticeRomajiUnitDisplay {
     id: string
     unit: PracticeReadingUnit
     startInputIndex: number
     endInputIndex: number
-    status: CharacterStatus
+    judgementStatus: PracticeJudgementStatus
     isActive: boolean
     characters: readonly DisplayCharacter[]
     visibleText: string
@@ -32,7 +32,7 @@ export interface PracticeKanaUnitDisplay {
     sourceText: string
     kanaText: string
     characters: readonly DisplayCharacter[]
-    status: CharacterStatus
+    judgementStatus: PracticeJudgementStatus
 }
 
 interface PracticeTypingJudgeOptions {
@@ -79,11 +79,11 @@ export const usePracticeTypingJudge = ({
         return isRomajiModeEnabled.value ? romajiDisplayText.value : toValue(targetPracticeText)
     })
 
-    const getDisplayCharacterTextClass = (status: CharacterStatus) => practiceCharacterTextClasses[status]
+    const getDisplayCharacterTextClass = (status: PracticeJudgementStatus) => practiceJudgementTextClasses[status]
 
     const isTargetSpaceCharacter = (character: string) => targetSpacePattern.test(character)
 
-    const getDisplayCharactersStatus = (characters: readonly DisplayCharacter[]): CharacterStatus => {
+    const getPracticeUnitJudgementStatus = (characters: readonly DisplayCharacter[]): PracticeJudgementStatus => {
         if (characters.some((character) => character.status === 'wrong')) {
             return 'wrong'
         }
@@ -131,7 +131,7 @@ export const usePracticeTypingJudge = ({
     })
 
     // 将 submittedText 按照 unit 放入整句后的区间提取对应文本 并逐字符判断正误
-    const getRomajiUnitStatus = (unit: PracticeReadingUnit, startInputIndex: number, endInputIndex: number): CharacterStatus => {
+    const getRomajiUnitStatus = (unit: PracticeReadingUnit, startInputIndex: number, endInputIndex: number): PracticeJudgementStatus => {
         const unitCharacters = Array.from(unit.romajiText)
         const submittedCharactersInUnit = submittedTextCharacters.value.slice(startInputIndex, endInputIndex)
 
@@ -164,7 +164,7 @@ export const usePracticeTypingJudge = ({
         })
     }
 
-    const romajiPracticeUnitDisplays = computed<PracticeTextUnitDisplay[]>(() => {
+    const romajiPracticeUnitDisplays = computed<PracticeRomajiUnitDisplay[]>(() => {
         let passedInputCharacterCount = 0
         const currentInputCharacterIndex = isRomajiInputLockedByError.value
             ? firstRomajiSubmittedErrorIndex.value
@@ -185,7 +185,7 @@ export const usePracticeTypingJudge = ({
                 unit,
                 startInputIndex,
                 endInputIndex,
-                status: getRomajiUnitStatus(unit, startInputIndex, endInputIndex),
+                judgementStatus: getRomajiUnitStatus(unit, startInputIndex, endInputIndex),
                 isActive,
                 characters: getRomajiUnitDisplayCharacters(unit, startInputIndex),
                 visibleText: unit.romajiText,
@@ -254,7 +254,7 @@ export const usePracticeTypingJudge = ({
             const submittedCharacter = isTargetSpace
                 ? undefined
                 : submittedTextCharacters.value[targetInputCharacterIndex]
-            const status: CharacterStatus = submittedCharacter === undefined
+            const status: PracticeJudgementStatus = submittedCharacter === undefined
                 ? 'pending'
                 : submittedCharacter === targetCharacter ? 'correct' : 'wrong'
 
@@ -320,7 +320,7 @@ export const usePracticeTypingJudge = ({
                 sourceText: unit.sourceText,
                 kanaText: unit.kanaText,
                 characters,
-                status: getDisplayCharactersStatus(characters),
+                judgementStatus: getPracticeUnitJudgementStatus(characters),
             }
         })
 
@@ -345,7 +345,7 @@ export const usePracticeTypingJudge = ({
             return {
                 ...unitDisplay,
                 characters,
-                status: getDisplayCharactersStatus(characters),
+                judgementStatus: getPracticeUnitJudgementStatus(characters),
             }
         })
     })
@@ -358,7 +358,7 @@ export const usePracticeTypingJudge = ({
      * 同时用长度兜底处理没有标点的长句
      * parser 已经负责练习文本规范化 这里继续只处理视觉换行
      */
-    const displayCharacterChunks = computed<DisplayCharacterChunk[]>(() => {
+    const fallbackDisplayCharacterChunks = computed<DisplayCharacterChunk[]>(() => {
         const chunks: DisplayCharacterChunk[] = []
         let chunkCharacters: DisplayCharacter[] = []
 
@@ -515,7 +515,7 @@ export const usePracticeTypingJudge = ({
         simulatedCursorTargetCharacterIndex,
         isSubmittedTextCompleteAndCorrect,
         displayCharacters,
-        displayCharacterChunks,
+        fallbackDisplayCharacterChunks,
         isCursorAfterAllCharacters,
         warnRomajiInputMethod,
         submitDirectRomajiInput,

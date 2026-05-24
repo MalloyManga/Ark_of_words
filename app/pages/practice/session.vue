@@ -76,7 +76,7 @@ const {
     submittedText,
     romajiPracticeUnitDisplays,
     kanaPracticeUnitDisplays,
-    displayCharacterChunks,
+    fallbackDisplayCharacterChunks,
     isCursorAfterAllCharacters,
     getDisplayCharacterTextClass,
     getDisplayCharacterValue,
@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
                 <PracticeTextDisplay :is-romaji-mode-enabled="isRomajiModeEnabled"
                     :romaji-practice-unit-displays="romajiPracticeUnitDisplays"
                     :kana-practice-unit-displays="kanaPracticeUnitDisplays"
-                    :display-character-chunks="displayCharacterChunks" :kana-hint="kanaHint"
+                    :fallback-display-character-chunks="fallbackDisplayCharacterChunks" :kana-hint="kanaHint"
                     :should-show-kana-hint="shouldShowKanaHint" :should-show-original-text="shouldShowOriginalText"
                     :is-cursor-after-all-characters="isCursorAfterAllCharacters"
                     :get-display-character-text-class="getDisplayCharacterTextClass"
