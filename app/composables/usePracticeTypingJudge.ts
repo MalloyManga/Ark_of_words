@@ -43,6 +43,7 @@ interface PracticeTypingJudgeOptions {
     pendingInputText: Ref<string>
     clearInputReceiverValue: () => void
     focusInputReceiver: () => void
+    onRomajiInputMethodWarning?: () => void
 }
 
 const romajiAllowedInputPattern = /^[\x00-\x7F]*$/u
@@ -66,6 +67,7 @@ export const usePracticeTypingJudge = ({
     pendingInputText,
     clearInputReceiverValue,
     focusInputReceiver,
+    onRomajiInputMethodWarning,
 }: PracticeTypingJudgeOptions) => {
     const submittedText = ref('')
 
@@ -394,6 +396,7 @@ export const usePracticeTypingJudge = ({
 
     const warnRomajiInputMethod = () => {
         console.log(romajiInputWarningMessage)
+        onRomajiInputMethodWarning?.()
     }
 
     /**

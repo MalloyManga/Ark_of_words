@@ -12,6 +12,7 @@ const practiceAudioRef = useTemplateRef<HTMLAudioElement>('practiceAudioRef')
 const activeDisplayModeIndex = ref(0)
 const isRomajiModeEnabled = ref(false)
 const isPracticeInfoModalOpen = ref(false)
+const isRomajiInputMethodModalOpen = ref(false)
 
 // 规范化传入的难度参数 得到稳定的难度配置
 const selectedDifficulty = computed<PracticeDifficulty>(() => {
@@ -70,6 +71,9 @@ const typingJudge = usePracticeTypingJudge({
     pendingInputText,
     clearInputReceiverValue,
     focusInputReceiver,
+    onRomajiInputMethodWarning: () => {
+        isRomajiInputMethodModalOpen.value = true
+    },
 })
 
 const {
@@ -89,6 +93,7 @@ warnRomajiInputMethod = typingJudge.warnRomajiInputMethod
 
 const {
     closePracticeInfoModal,
+    switchToKanaMode,
     handlePracticeToolAction,
 } = usePracticeToolActions({
     practiceAudioRef,
@@ -101,9 +106,19 @@ const {
     focusInputReceiver,
 })
 
+const closeRomajiInputMethodModal = () => {
+    isRomajiInputMethodModalOpen.value = false
+}
+
+const handleSwitchToKanaMode = () => {
+    switchToKanaMode()
+    closeRomajiInputMethodModal()
+}
+
 const handleWindowKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
         closePracticeInfoModal()
+        closeRomajiInputMethodModal()
     }
 }
 
@@ -190,6 +205,8 @@ onBeforeUnmount(() => {
 
             <PracticeInfoModal :is-open="isPracticeInfoModalOpen" title="当前语音信息" :items="practiceInfoItems"
                 @close="closePracticeInfoModal" />
+            <PracticeRomajiInputMethodModal :is-open="isRomajiInputMethodModalOpen"
+                @close="closeRomajiInputMethodModal" @switch-to-kana-mode="handleSwitchToKanaMode" />
         </section>
     </main>
 </template>

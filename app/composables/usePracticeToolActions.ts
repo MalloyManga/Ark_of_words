@@ -16,6 +16,7 @@ interface PracticeToolActions {
     playPracticeAudio: () => Promise<void>
     cycleDisplayMode: () => void
     toggleRomajiMode: () => void
+    switchToKanaMode: () => void
     closePracticeInfoModal: () => void
     handlePracticeToolAction: (actionId: PracticeToolActionId) => Promise<void>
 }
@@ -57,6 +58,16 @@ export const usePracticeToolActions = ({
         nextTick(focusInputReceiver)
     }
 
+    const switchToKanaMode = () => {
+        if (!isRomajiModeEnabled.value) {
+            nextTick(focusInputReceiver)
+            return
+        }
+
+        // 只从罗马字切回假名模式 复用 toggle 的清空提交和 pending 规则
+        toggleRomajiMode()
+    }
+
     const closePracticeInfoModal = () => {
         isPracticeInfoModalOpen.value = false
     }
@@ -87,6 +98,7 @@ export const usePracticeToolActions = ({
         playPracticeAudio,
         cycleDisplayMode,
         toggleRomajiMode,
+        switchToKanaMode,
         closePracticeInfoModal,
         handlePracticeToolAction,
     }
