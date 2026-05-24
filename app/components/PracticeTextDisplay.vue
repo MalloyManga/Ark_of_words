@@ -95,10 +95,10 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
             <span v-for="unitDisplay in romajiPracticeUnitDisplays" :key="unitDisplay.id"
                 class="inline-flex flex-col items-center justify-end gap-y-0.5">
                 <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-emerald-700/70">
-                    {{ shouldShowUnitKanaText(unitDisplay.unit) ? unitDisplay.unit.kanaText : '' }}
+                    {{ shouldShowKanaHint && shouldShowUnitKanaText(unitDisplay.unit) ? unitDisplay.unit.kanaText : '' }}
                 </span>
                 <span class="min-h-5 font-[Yu_Gothic] text-[20px] leading-none text-emerald-900 mb-1">
-                    {{ unitDisplay.unit.sourceText }}
+                    {{ shouldShowKanaHint ? unitDisplay.unit.sourceText : '' }}
                 </span>
                 <span class="inline-flex items-end">
                     <!-- 显示原文状态下 当前 activeUnit 拆分内部 characters 逐 span 渲染 -->
