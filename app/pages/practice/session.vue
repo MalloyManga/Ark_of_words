@@ -144,10 +144,10 @@ onBeforeUnmount(() => {
 
                 <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 text-right">
                     <p
-                        class="font-zh-playful max-w-[min(52vw,28rem)] truncate text-sm font-bold text-emerald-700/75 sm:text-base">
+                        class="max-w-[min(52vw,28rem)] truncate font-mono text-sm font-bold text-emerald-700/75 sm:text-base">
                         {{ currentPracticeLineTitle }}
                     </p>
-                    <span class="font-zh-playful text-sm font-black" :class="selectedDifficultyDetail.classes">
+                    <span class="font-mono text-sm font-black" :class="selectedDifficultyDetail.classes">
                         {{ selectedDifficultyDetail.label }}
                     </span>
                     <span class="font-fredoka text-sm font-black text-emerald-700">
@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
                 <!-- 当前语音的中文译文 -->
                 <div class="mt-6 flex min-h-8 w-full items-center justify-center">
                     <p v-show="shouldShowTranslation"
-                        class="font-zh-playful text-base font-bold text-emerald-700/75 sm:text-lg">
+                        class="font-mono text-base font-bold text-emerald-700/75 sm:text-lg">
                         {{ currentPracticeChineseText || '暂无中文译文' }}
                     </p>
                     <p v-show="!shouldShowTranslation" class="sr-only">

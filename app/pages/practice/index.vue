@@ -43,7 +43,7 @@ const difficultyOptions: readonly DifficultyOption[] = [
             <div class="flex w-full max-w-xl flex-col gap-5">
                 <NuxtLink v-for="option in difficultyOptions" :key="option.value"
                     :to="`/practice/session?difficulty=${option.value}`"
-                    class="font-zh-playful flex h-16 items-center justify-center rounded-3xl border-2 text-2xl font-black transition-all duration-150 hover:translate-x-1 hover:translate-y-1 active:translate-x-2 active:translate-y-2"
+                    class="flex h-16 items-center justify-center rounded-3xl border-2 font-mono text-2xl font-black transition-all duration-150 hover:translate-x-1 hover:translate-y-1 active:translate-x-2 active:translate-y-2"
                     :class="option.classes">
                     {{ option.label }}
                 </NuxtLink>
