@@ -11,6 +11,16 @@ export interface PracticeInfoItem {
     value: string
 }
 
+/**
+ * 练习阅读单元是第三方分词和假名 罗马字转换库接入前的稳定接口
+ */
+export interface PracticeReadingUnit {
+    id: string
+    sourceText: string
+    kanaText: string
+    romajiText: string
+}
+
 export interface PracticeLineSource {
     currentPracticeLine: PrtsVoiceLine | undefined
     currentPracticeOperatorName: string
@@ -19,11 +29,25 @@ export interface PracticeLineSource {
     targetPracticeText: string
     currentPracticeLineTitle: string
     kanaHint: string
+    practiceReadingUnits: readonly PracticeReadingUnit[]
     practiceInfoItems: ComputedRef<readonly PracticeInfoItem[]>
 }
 
 const selectedPracticeLineIndex = 14
 const mockPracticeAudioFileName = '编入队伍.wav'
+const mockPracticeReadingUnits: readonly PracticeReadingUnit[] = [
+    { id: 'mock-reading-unit-1', sourceText: 'あたし', kanaText: 'あたし', romajiText: 'atashi' },
+    { id: 'mock-reading-unit-2', sourceText: 'が', kanaText: 'が', romajiText: 'ga' },
+    { id: 'mock-reading-unit-3', sourceText: '死んだら', kanaText: 'しんだら', romajiText: 'shinndara' },
+    { id: 'space-after-shinndara', sourceText: ' ', kanaText: ' ', romajiText: ' ', },
+    { id: 'mock-reading-unit-4', sourceText: '見舞い金', kanaText: 'みまいきん', romajiText: 'mimaikinn' },
+    { id: 'mock-reading-unit-5', sourceText: 'で', kanaText: 'で', romajiText: 'de' },
+    { id: 'mock-reading-unit-6', sourceText: 'みんな', kanaText: 'みんな', romajiText: 'minnna' },
+    { id: 'mock-reading-unit-7', sourceText: 'に', kanaText: 'に', romajiText: 'ni' },
+    { id: 'mock-reading-unit-8', sourceText: '焼きじゃがいも', kanaText: 'やきじゃがいも', romajiText: 'yakijagaimo' },
+    { id: 'mock-reading-unit-9', sourceText: 'を', kanaText: 'を', romajiText: 'wo' },
+    { id: 'mock-reading-unit-10', sourceText: 'おごっておいて', kanaText: 'おごっておいて', romajiText: 'ogotteoite' },
+]
 
 const createPlaceholderKanaHint = (text: string) => {
     // kana 生成规则还没有确定 这里先用等长占位符验证练习数据接线
@@ -61,6 +85,7 @@ export const usePracticeLineSource = (options: PracticeLineSourceOptions): Pract
         targetPracticeText,
         currentPracticeLineTitle,
         kanaHint,
+        practiceReadingUnits: mockPracticeReadingUnits,
         practiceInfoItems,
     }
 }

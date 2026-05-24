@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CharacterStatus } from '~/constants/practiceCharacterStatus'
+import type { PracticeReadingUnit } from '~/composables/usePracticeLineSource'
 
 interface DisplayCharacter {
     value: string
@@ -14,16 +15,9 @@ interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
-interface PracticeTextUnit {
-    id: string
-    romajiText: string
-    sourceText: string
-    kanaText: string
-}
-
 interface PracticeTextUnitDisplay {
     id: string
-    unit: PracticeTextUnit
+    unit: PracticeReadingUnit
     startInputIndex: number
     endInputIndex: number
     status: CharacterStatus
@@ -32,9 +26,18 @@ interface PracticeTextUnitDisplay {
     visibleText: string
 }
 
+interface PracticeKanaUnitDisplay {
+    id: string
+    sourceText: string
+    kanaText: string
+    characters: readonly DisplayCharacter[]
+    status: CharacterStatus
+}
+
 interface PracticeTextDisplayProps {
     isRomajiModeEnabled: boolean
     romajiPracticeUnitDisplays: readonly PracticeTextUnitDisplay[]
+    kanaPracticeUnitDisplays: readonly PracticeKanaUnitDisplay[]
     displayCharacterChunks: readonly DisplayCharacterChunk[]
     kanaHint: string
     shouldShowKanaHint: boolean
@@ -47,6 +50,7 @@ interface PracticeTextDisplayProps {
 const {
     isRomajiModeEnabled,
     romajiPracticeUnitDisplays,
+    kanaPracticeUnitDisplays,
     displayCharacterChunks,
     kanaHint,
     shouldShowKanaHint,
@@ -55,14 +59,28 @@ const {
     getDisplayCharacterTextClass,
     getDisplayCharacterValue,
 } = defineProps<PracticeTextDisplayProps>()
+
+const kanjiPattern = /\p{Script=Han}/u
+
+const shouldShowUnitKanaText = (unit: PracticeReadingUnit) => {
+    return kanjiPattern.test(unit.sourceText) && unit.kanaText !== unit.sourceText
+}
+
+const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
+    return shouldShowKanaHint
+        && kanjiPattern.test(unitDisplay.sourceText)
+        && unitDisplay.kanaText.trim() !== ''
+        && unitDisplay.sourceText !== unitDisplay.kanaText
+}
 </script>
 
 <template>
-    <div class="flex min-h-7 w-full items-center justify-center">
-        <p v-show="shouldShowKanaHint" class="text-sm font-medium tracking-[0.2em] text-emerald-700/70">
+    <div class="flex min-h-8 w-full items-center justify-center">
+        <p v-show="!isRomajiModeEnabled && shouldShowKanaHint && kanaPracticeUnitDisplays.length === 0"
+            class="font-[Yu_Gothic] text-[15px] font-medium tracking-[0.2em] text-emerald-700/70">
             {{ kanaHint }}
         </p>
-        <p v-show="!shouldShowKanaHint" class="sr-only">
+        <p v-show="isRomajiModeEnabled || !shouldShowKanaHint || kanaPracticeUnitDisplays.length > 0" class="sr-only">
             {{ kanaHint }}
         </p>
     </div>
@@ -73,45 +91,77 @@ const {
 
         <!-- 罗马字输入模式 -->
         <div v-if="isRomajiModeEnabled"
-            class="flex max-w-full wrap-break-word flex-wrap items-end justify-center gap-x-[0.42em] gap-y-3">
-            <span v-for="unitDisplay in romajiPracticeUnitDisplays" :key="unitDisplay.id" class="inline-flex items-end">
+            class="flex max-w-full wrap-break-word flex-wrap items-end justify-center gap-x-[0.42em] gap-y-6 pt-2">
+            <span v-for="unitDisplay in romajiPracticeUnitDisplays" :key="unitDisplay.id"
+                class="inline-flex flex-col items-center justify-end gap-y-0.5">
+                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-emerald-700/70">
+                    {{ shouldShowUnitKanaText(unitDisplay.unit) ? unitDisplay.unit.kanaText : '' }}
+                </span>
+                <span class="min-h-5 font-[Yu_Gothic] text-[20px] leading-none text-emerald-900 mb-1">
+                    {{ unitDisplay.unit.sourceText }}
+                </span>
+                <span class="inline-flex items-end">
+                    <!-- 显示原文状态下 当前 activeUnit 拆分内部 characters 逐 span 渲染 -->
+                    <template v-if="unitDisplay.isActive">
+                        <template v-for="(character, index) in unitDisplay.characters"
+                            :key="`${unitDisplay.id}-${character.value}-${index}`">
+                            <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
+                            <span class="inline-flex justify-center font-romaji"
+                                :class="getDisplayCharacterTextClass(character.status)">
+                                {{ getDisplayCharacterValue(character) }}
+                            </span>
+                        </template>
+                    </template>
 
-                <!-- 显示原文状态下 当前 activeUnit 拆分内部 characters 逐 span 渲染 -->
-                <template v-if="unitDisplay.isActive">
-                    <template v-for="(character, index) in unitDisplay.characters"
-                        :key="`${unitDisplay.id}-${character.value}-${index}`">
-                        <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
-                        <span class="inline-flex justify-center font-romaji"
+                    <!-- 显示原文状态下 非 activeUnit 直接显示原文不做拆分 -->
+                    <template v-else-if="shouldShowOriginalText">
+                        <span class="inline-flex size-auto justify-center font-romaji"
+                            :class="getDisplayCharacterTextClass(unitDisplay.status)">
+                            {{ unitDisplay.visibleText }}
+                        </span>
+                    </template>
+
+                    <!-- 隐藏原文状态下 全部替换为 _ -->
+                    <template v-else>
+                        <span v-for="(character, index) in unitDisplay.characters"
+                            :key="`${unitDisplay.id}-placeholder-${index}`"
+                            class="inline-flex size-auto justify-center font-romaji"
                             :class="getDisplayCharacterTextClass(character.status)">
                             {{ getDisplayCharacterValue(character) }}
                         </span>
                     </template>
-                </template>
-
-                <!-- 显示原文状态下 非 activeUnit 直接显示原文不做拆分 -->
-                <template v-else-if="shouldShowOriginalText">
-                    <span class="inline-flex size-auto justify-center font-romaji"
-                        :class="getDisplayCharacterTextClass(unitDisplay.status)">
-                        {{ unitDisplay.visibleText }}
-                    </span>
-                </template>
-
-                <!-- 隐藏原文状态下 全部替换为 _ -->
-                <template v-else>
-                    <span v-for="(character, index) in unitDisplay.characters"
-                        :key="`${unitDisplay.id}-placeholder-${index}`"
-                        class="inline-flex size-auto justify-center font-romaji"
-                        :class="getDisplayCharacterTextClass(character.status)">
-                        {{ getDisplayCharacterValue(character) }}
-                    </span>
-                </template>
+                </span>
             </span>
 
             <span v-if="isCursorAfterAllCharacters" class="typing-caret" aria-hidden="true" />
         </div>
 
         <!-- 假名输入模式 -->
-        <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center font-mono">
+        <div v-else-if="kanaPracticeUnitDisplays.length > 0"
+            class="flex max-w-full wrap-break-word flex-wrap items-end justify-center gap-x-[0.36em] gap-y-5 pt-2">
+            <span v-for="unitDisplay in kanaPracticeUnitDisplays" :key="unitDisplay.id"
+                class="inline-flex flex-col items-center justify-end gap-y-1.5">
+                <!-- 显示假名 -->
+                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-emerald-700/70">
+                    {{ shouldShowKanaUnitKanaText(unitDisplay) ? unitDisplay.kanaText : '' }}
+                </span>
+                <!-- 逐字符显示 characters -->
+                <span class="inline-flex items-end font-mono text-[34px] leading-none sm:text-4xl">
+                    <template v-for="(character, index) in unitDisplay.characters"
+                        :key="`${unitDisplay.id}-${character.value}-${index}`">
+                        <span v-if="character.isCursorBefore" class="typing-caret" aria-hidden="true" />
+                        <span class="inline-flex min-w-[1.12em] justify-center"
+                            :class="getDisplayCharacterTextClass(character.status)">
+                            {{ getDisplayCharacterValue(character) }}
+                        </span>
+                    </template>
+                </span>
+            </span>
+
+            <span v-if="isCursorAfterAllCharacters" class="typing-caret" aria-hidden="true" />
+        </div>
+        <!-- 罗马字显示有问题时 这里兜底 -->
+        <div v-else class="flex max-w-full wrap-break-word flex-col items-center justify-center pt-1 font-mono">
             <template v-for="(chunk, chunkIndex) in displayCharacterChunks" :key="chunk.id">
                 <span class="inline-flex items-end">
                     <template v-for="(character, index) in chunk.characters"

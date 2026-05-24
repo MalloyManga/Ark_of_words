@@ -26,6 +26,7 @@ const {
     currentPracticeLineTitle,
     targetPracticeText,
     kanaHint,
+    practiceReadingUnits,
     practiceInfoItems,
 } = usePracticeLineSource({
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
@@ -64,6 +65,7 @@ const {
 const typingJudge = usePracticeTypingJudge({
     isRomajiModeEnabled,
     targetPracticeText,
+    practiceReadingUnits,
     shouldShowOriginalText,
     pendingInputText,
     clearInputReceiverValue,
@@ -73,6 +75,7 @@ const typingJudge = usePracticeTypingJudge({
 const {
     submittedText,
     romajiPracticeUnitDisplays,
+    kanaPracticeUnitDisplays,
     displayCharacterChunks,
     isCursorAfterAllCharacters,
     getDisplayCharacterTextClass,
@@ -150,6 +153,7 @@ onBeforeUnmount(() => {
                 <!-- 主体原文展示已拆到纯展示组件 判定状态由 typing judge composable 提供 -->
                 <PracticeTextDisplay :is-romaji-mode-enabled="isRomajiModeEnabled"
                     :romaji-practice-unit-displays="romajiPracticeUnitDisplays"
+                    :kana-practice-unit-displays="kanaPracticeUnitDisplays"
                     :display-character-chunks="displayCharacterChunks" :kana-hint="kanaHint"
                     :should-show-kana-hint="shouldShowKanaHint" :should-show-original-text="shouldShowOriginalText"
                     :is-cursor-after-all-characters="isCursorAfterAllCharacters"

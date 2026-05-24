@@ -1,5 +1,6 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import { practiceCharacterTextClasses } from '~/constants/practiceCharacterStatus'
+import type { PracticeReadingUnit } from '~/composables/usePracticeLineSource'
 import type { CharacterStatus } from '~/constants/practiceCharacterStatus'
 
 export interface DisplayCharacter {
@@ -15,16 +16,9 @@ export interface DisplayCharacterChunk {
     characters: readonly DisplayCharacter[]
 }
 
-export interface PracticeTextUnit {
-    id: string
-    romajiText: string
-    sourceText: string
-    kanaText: string
-}
-
 export interface PracticeTextUnitDisplay {
     id: string
-    unit: PracticeTextUnit
+    unit: PracticeReadingUnit
     startInputIndex: number
     endInputIndex: number
     status: CharacterStatus
@@ -33,18 +27,23 @@ export interface PracticeTextUnitDisplay {
     visibleText: string
 }
 
+export interface PracticeKanaUnitDisplay {
+    id: string
+    sourceText: string
+    kanaText: string
+    characters: readonly DisplayCharacter[]
+    status: CharacterStatus
+}
+
 interface PracticeTypingJudgeOptions {
     isRomajiModeEnabled: Ref<boolean>
     targetPracticeText: MaybeRefOrGetter<string>
+    practiceReadingUnits: MaybeRefOrGetter<readonly PracticeReadingUnit[]>
     shouldShowOriginalText: Readonly<Ref<boolean>>
     pendingInputText: Ref<string>
     clearInputReceiverValue: () => void
     focusInputReceiver: () => void
 }
-
-// 罗马字暂时用手写 mock 代替后端/第三方库生成结果
-// 后续真正接库时 这个字符串会被 PracticeTextUnit[] 数据替换
-const romanizedPracticePlaceholder = 'atashi ga shinndara minmaikinn de minnna ni yakijagaimo wo ogotteoite'
 
 const romajiAllowedInputPattern = /^[\x00-\x7F]*$/u
 const romajiInputWarningMessage = '罗马字模式请使用英文输入法'
@@ -62,6 +61,7 @@ export const normalizePracticeInputText = (text: string) => text.replace(inputWh
 export const usePracticeTypingJudge = ({
     isRomajiModeEnabled,
     targetPracticeText,
+    practiceReadingUnits,
     shouldShowOriginalText,
     pendingInputText,
     clearInputReceiverValue,
@@ -69,13 +69,31 @@ export const usePracticeTypingJudge = ({
 }: PracticeTypingJudgeOptions) => {
     const submittedText = ref('')
 
+    // 罗马字显示目标由 reading units 派生
+    // 这样第三方分词和转换库接入后只需要替换 PracticeReadingUnit 数据源
+    const romajiDisplayText = computed(() => {
+        return toValue(practiceReadingUnits).map((unit) => unit.romajiText).join(' ')
+    })
+
     const activeTargetPracticeText = computed(() => {
-        return isRomajiModeEnabled.value ? romanizedPracticePlaceholder : toValue(targetPracticeText)
+        return isRomajiModeEnabled.value ? romajiDisplayText.value : toValue(targetPracticeText)
     })
 
     const getDisplayCharacterTextClass = (status: CharacterStatus) => practiceCharacterTextClasses[status]
 
     const isTargetSpaceCharacter = (character: string) => targetSpacePattern.test(character)
+
+    const getDisplayCharactersStatus = (characters: readonly DisplayCharacter[]): CharacterStatus => {
+        if (characters.some((character) => character.status === 'wrong')) {
+            return 'wrong'
+        }
+
+        if (characters.length > 0 && characters.every((character) => character.status === 'correct')) {
+            return 'correct'
+        }
+
+        return 'pending'
+    }
 
     const targetTextCharacters = computed(() => Array.from(activeTargetPracticeText.value))
     const targetInputCharacters = computed(() => {
@@ -98,21 +116,6 @@ export const usePracticeTypingJudge = ({
         return isTargetSpaceCharacter(character.value) ? ' ' : '_'
     }
 
-    const createMockRomajiPracticeUnits = (romajiText: string): PracticeTextUnit[] => {
-        return romajiText.split(' ').filter(Boolean).map((romajiUnitText, romajiUnitIndex) => {
-            return {
-                id: `mock-romaji-unit-${romajiUnitIndex}`,
-                romajiText: romajiUnitText,
-                sourceText: '', // 这里 sourceText 之后需要进行对应回原文
-                kanaText: '',
-            }
-        })
-    }
-
-    const mockRomajiPracticeUnits = computed<PracticeTextUnit[]>(() => {
-        return createMockRomajiPracticeUnits(romanizedPracticePlaceholder)
-    })
-
     // 第一个错误字符决定罗马字输入锁定位置和 active unit
     const firstRomajiSubmittedErrorIndex = computed(() => {
         if (!isRomajiModeEnabled.value) {
@@ -128,7 +131,7 @@ export const usePracticeTypingJudge = ({
     })
 
     // 将 submittedText 按照 unit 放入整句后的区间提取对应文本 并逐字符判断正误
-    const getRomajiUnitStatus = (unit: PracticeTextUnit, startInputIndex: number, endInputIndex: number): CharacterStatus => {
+    const getRomajiUnitStatus = (unit: PracticeReadingUnit, startInputIndex: number, endInputIndex: number): CharacterStatus => {
         const unitCharacters = Array.from(unit.romajiText)
         const submittedCharactersInUnit = submittedTextCharacters.value.slice(startInputIndex, endInputIndex)
 
@@ -143,7 +146,7 @@ export const usePracticeTypingJudge = ({
         return 'correct'
     }
 
-    const getRomajiUnitDisplayCharacters = (unit: PracticeTextUnit, startInputIndex: number): DisplayCharacter[] => {
+    const getRomajiUnitDisplayCharacters = (unit: PracticeReadingUnit, startInputIndex: number): DisplayCharacter[] => {
         return Array.from(unit.romajiText).map((targetCharacter, characterIndex) => {
             const inputCharacterIndex = startInputIndex + characterIndex
             const submittedCharacter = submittedTextCharacters.value[inputCharacterIndex]
@@ -167,7 +170,7 @@ export const usePracticeTypingJudge = ({
             ? firstRomajiSubmittedErrorIndex.value
             : submittedTextCharacters.value.length
 
-        return mockRomajiPracticeUnits.value.map((unit) => {
+        return toValue(practiceReadingUnits).map((unit) => {
             const unitInputCharacterCount = Array.from(unit.romajiText).length
             const startInputIndex = passedInputCharacterCount
             const endInputIndex = passedInputCharacterCount + unitInputCharacterCount
@@ -286,6 +289,65 @@ export const usePracticeTypingJudge = ({
         })
 
         return characters
+    })
+
+    const kanaPracticeUnitDisplays = computed<PracticeKanaUnitDisplay[]>(() => {
+        if (isRomajiModeEnabled.value) {
+            return []
+        }
+
+        const readingUnits = toValue(practiceReadingUnits)
+        const sourceTextFromUnits = readingUnits.map((unit) => unit.sourceText).join('')
+
+        // 假名模式的输入判定仍然使用 targetPracticeText
+        // 这里只在 reading units 能完整覆盖原文时复用 displayCharacters 派生渲染单元
+        if (!sourceTextFromUnits || sourceTextFromUnits !== toValue(targetPracticeText)) {
+            return []
+        }
+
+        let passedSourceCharacterCount = 0
+        const unitDisplays = readingUnits.map((unit) => {
+            const sourceCharacterCount = Array.from(unit.sourceText).length
+            const characters = displayCharacters.value.slice(
+                passedSourceCharacterCount,
+                passedSourceCharacterCount + sourceCharacterCount,
+            )
+
+            passedSourceCharacterCount += sourceCharacterCount
+
+            return {
+                id: unit.id,
+                sourceText: unit.sourceText,
+                kanaText: unit.kanaText,
+                characters,
+                status: getDisplayCharactersStatus(characters),
+            }
+        })
+
+        // 判断是否有额外字符
+        const trailingCharacters = displayCharacters.value.slice(passedSourceCharacterCount)
+        if (trailingCharacters.length === 0 || unitDisplays.length === 0) {
+            return unitDisplays
+        }
+
+        // 日文模式允许多提交字符 额外字符不是 reading unit 的一部分
+        // 为了保留旧渲染的错误提示和光标位置 将它们挂到最后一个显示单元末尾
+        const lastUnitDisplayIndex = unitDisplays.length - 1
+
+        return unitDisplays.map((unitDisplay, unitDisplayIndex) => {
+            // 没有额外字符直接返回
+            if (unitDisplayIndex !== lastUnitDisplayIndex) {
+                return unitDisplay
+            }
+
+            // 存在额外字符
+            const characters = [...unitDisplay.characters, ...trailingCharacters]
+            return {
+                ...unitDisplay,
+                characters,
+                status: getDisplayCharactersStatus(characters),
+            }
+        })
     })
 
     /**
@@ -434,6 +496,7 @@ export const usePracticeTypingJudge = ({
 
     return {
         submittedText,
+        romajiDisplayText,
         activeTargetPracticeText,
         isTargetSpaceCharacter,
         targetTextCharacters,
@@ -441,14 +504,13 @@ export const usePracticeTypingJudge = ({
         submittedTextCharacters,
         getDisplayCharacterTextClass,
         getDisplayCharacterValue,
-        createMockRomajiPracticeUnits,
-        mockRomajiPracticeUnits,
         firstRomajiSubmittedErrorIndex,
         isRomajiInputLockedByError,
         isRomajiInputCompleteAndCorrect,
         getRomajiUnitStatus,
         getRomajiUnitDisplayCharacters,
         romajiPracticeUnitDisplays,
+        kanaPracticeUnitDisplays,
         getCursorTargetCharacterIndex,
         simulatedCursorTargetCharacterIndex,
         isSubmittedTextCompleteAndCorrect,
