@@ -1,8 +1,12 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
+import { createPracticePoolsFromOperatorVoiceData } from '~/constants/practicePools'
+import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
+import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import type { PrtsVoiceLine } from '~/utils/prtsVoiceDataExtractor'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
 interface PracticeLineSourceOptions {
+    poolId: MaybeRefOrGetter<PracticePoolId>
     difficultyLabel: MaybeRefOrGetter<string>
 }
 
@@ -22,19 +26,21 @@ export interface PracticeReadingUnit {
 }
 
 export interface PracticeLineSource {
-    currentPracticeLine: PrtsVoiceLine | undefined
-    currentPracticeOperatorName: string
-    currentPracticeAudioPath: string
-    currentPracticeChineseText: string
-    targetPracticeText: string
-    currentPracticeLineTitle: string
-    kanaHint: string
+    currentPracticePool: ComputedRef<PracticePool | undefined>
+    currentPracticePoolItem: ComputedRef<PracticePoolItem | undefined>
+    currentPracticeLine: ComputedRef<PrtsVoiceLine | undefined>
+    currentPracticeOperatorName: ComputedRef<string>
+    currentPracticeAudioPath: ComputedRef<string>
+    currentPracticeChineseText: ComputedRef<string>
+    targetPracticeText: ComputedRef<string>
+    currentPracticeLineTitle: ComputedRef<string>
+    kanaHint: ComputedRef<string>
     practiceReadingUnits: readonly PracticeReadingUnit[]
     practiceInfoItems: ComputedRef<readonly PracticeInfoItem[]>
 }
 
-const selectedPracticeLineIndex = 14
 const mockPracticeAudioFileName = '编入队伍.wav'
+const currentMockVoiceNumber = 17
 const mockPracticeReadingUnits: readonly PracticeReadingUnit[] = [
     { id: 'mock-reading-unit-1', sourceText: 'あたし', kanaText: 'あたし', romajiText: 'atashi' },
     { id: 'mock-reading-unit-2', sourceText: 'が', kanaText: 'が', romajiText: 'ga' },
@@ -54,30 +60,45 @@ const createPlaceholderKanaHint = (text: string) => {
     return Array.from(text).map(() => '＿').join('')
 }
 
-export const usePracticeLineSource = (options: PracticeLineSourceOptions): PracticeLineSource => {
+export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineSourceOptions): PracticeLineSource => {
     // 练习数据源只负责选择当前语音行 不保存输入 判定 光标等练习状态
     const wisadelVoiceData = parsePrtsOperatorVoiceData(wisadelVoicePageRawData)
-    const currentPracticeLine = wisadelVoiceData.lines[selectedPracticeLineIndex]
-    const currentPracticeOperatorName = wisadelVoiceData.operatorName
-    const currentPracticeAudioPath = currentPracticeLine
-        ? `/${wisadelVoiceData.japaneseAudioBasePath}/${currentPracticeLine.audioFileName}`
-        : ''
-    const currentPracticeChineseText = currentPracticeLine?.chineseText ?? ''
-    const targetPracticeText = currentPracticeLine?.japaneseText ?? ''
-    const currentPracticeLineTitle = currentPracticeLine?.title ?? `${wisadelVoiceData.operatorName}的不知道哪一条语音`
-    const kanaHint = createPlaceholderKanaHint(targetPracticeText)
-    const practiceInfoItems = computed<PracticeInfoItem[]>(() => [
-        { label: '干员', value: currentPracticeOperatorName || '未知干员' },
-        { label: '标题', value: currentPracticeLineTitle || '未知语音' },
-        { label: '难度', value: toValue(options.difficultyLabel) },
-        { label: '日文', value: targetPracticeText || '暂无日文文本' },
-        { label: '中文', value: currentPracticeChineseText || '暂无中文译文' },
-        { label: '原始音频路径', value: currentPracticeAudioPath || '暂无原始路径' },
-        { label: '当前播放文件', value: currentPracticeLine?.audioFileName ?? mockPracticeAudioFileName },
+    // mock 池先只接入 Wisadel 数据 这里保留数组入口 之后追加干员时不需要改池构建逻辑
+    const practicePools = createPracticePoolsFromOperatorVoiceData([wisadelVoiceData])
+    const currentPracticePool = computed(() => {
+        return practicePools.find((practicePool) => practicePool.id === toValue(poolId))
+    })
+    // 现阶段还没有 sessionQueue 优先按 PRTS 编号固定 mock 题目 保持题目来源稳定
+    const currentPracticePoolItem = computed(() => {
+        return currentPracticePool.value?.items.find((poolItem) => poolItem.voiceNumber === currentMockVoiceNumber)
+            ?? currentPracticePool.value?.items[0]
+        // 当前阶段先暂时使用一条语音
+    })
+    const currentPracticeLine = computed(() => currentPracticePoolItem.value?.voiceLine)
+    const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? wisadelVoiceData.operatorName)
+    const currentPracticeAudioPath = computed(() => {
+        const practiceLine = currentPracticeLine.value
+        return practiceLine ? `/${wisadelVoiceData.japaneseAudioBasePath}/${practiceLine.audioFileName}` : ''
+    })
+    const currentPracticeChineseText = computed(() => currentPracticeLine.value?.chineseText ?? '')
+    const targetPracticeText = computed(() => currentPracticeLine.value?.japaneseText ?? '')
+    const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? `${wisadelVoiceData.operatorName}的不知道哪一条语音`)
+    const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText.value))
+    const practiceInfoItems = computed<readonly PracticeInfoItem[]>(() => [
+        { label: '干员', value: currentPracticeOperatorName.value || '未知干员' },
+        { label: '标题', value: currentPracticeLineTitle.value || '未知语音' },
+        { label: 'PRTS 编号', value: currentPracticePoolItem.value?.voiceNumber.toString() ?? '未知编号' },
+        { label: '难度', value: toValue(difficultyLabel) },
+        { label: '日文', value: targetPracticeText.value || '暂无日文文本' },
+        { label: '中文', value: currentPracticeChineseText.value || '暂无中文译文' },
+        { label: '原始音频路径', value: currentPracticeAudioPath.value || '暂无原始路径' },
+        { label: '当前播放文件', value: currentPracticeLine.value?.audioFileName ?? mockPracticeAudioFileName },
         { label: 'Mock 音频', value: mockPracticeAudioFileName },
     ])
 
     return {
+        currentPracticePool,
+        currentPracticePoolItem,
         currentPracticeLine,
         currentPracticeOperatorName,
         currentPracticeAudioPath,

@@ -30,6 +30,7 @@ const {
     practiceReadingUnits,
     practiceInfoItems,
 } = usePracticeLineSource({
+    poolId: selectedDifficulty,
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
 })
 

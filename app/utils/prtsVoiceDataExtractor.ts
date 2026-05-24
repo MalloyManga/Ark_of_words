@@ -33,6 +33,7 @@ interface PrtsPageRevision {
  */
 export interface PrtsVoiceLine {
     id: string
+    voiceNumber: number
     title: string
     japaneseText: string
     chineseText: string
@@ -363,6 +364,7 @@ const assembleVoiceLines = (parametersByName: ReadonlyMap<string, string>): Prts
 
         return {
             id: extractAudioFileStem(audioFileName, lineIndex),
+            voiceNumber: lineIndex,
             title,
             japaneseText,
             chineseText,
