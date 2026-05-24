@@ -137,7 +137,7 @@ const {
     flex: 0 0 0;
     position: relative;
     width: 0;
-    height: 1.2em;
+    height: 1em;
 }
 
 .typing-caret::before {
