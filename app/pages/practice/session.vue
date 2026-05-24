@@ -25,10 +25,10 @@ const {
     currentPracticeAudioPath,
     currentPracticeChineseText,
     currentPracticeLineTitle,
+    currentPracticePool,
     targetPracticeText,
     kanaHint,
     practiceReadingUnits,
-    practiceInfoItems,
 } = usePracticeLineSource({
     poolId: selectedDifficulty,
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
                 <PracticeToolBar @action-click="handlePracticeToolAction" />
             </div>
 
-            <PracticeInfoModal :is-open="isPracticeInfoModalOpen" title="当前语音信息" :items="practiceInfoItems"
+            <PracticePoolModal :is-open="isPracticeInfoModalOpen" :practice-pool="currentPracticePool"
                 @close="closePracticeInfoModal" />
             <PracticeRomajiInputMethodModal :is-open="isRomajiInputMethodModalOpen"
                 @close="closeRomajiInputMethodModal" @switch-to-kana-mode="handleSwitchToKanaMode" />
