@@ -64,7 +64,7 @@ const heroCopy = {
 
                 <!-- 主标题卡 墨黑大卡 -->
                 <section
-                    class="relative overflow-hidden rounded-[1.5rem] border-2 border-ink bg-ink p-7 text-cream shadow-[6px_6px_0_var(--color-ink)] sm:p-10 lg:col-span-7">
+                    class="relative overflow-hidden rounded-3xl border-2 border-ink bg-ink p-7 text-cream shadow-[6px_6px_0_var(--color-ink)] sm:p-10 lg:col-span-7">
                     <span class="nb-sticker bg-butter text-ink">
                         <span class="size-1.5 rounded-full bg-ink" />
                         <span class="font-romaji text-xs uppercase tracking-widest">{{ heroCopy.kicker }}</span>
@@ -97,7 +97,7 @@ const heroCopy = {
 
                 <!-- 立绘卡 纵向跨 3 行填满右侧 -->
                 <section
-                    class="relative flex flex-col overflow-hidden rounded-[1.5rem] border-2 border-ink bg-gradient-to-b from-indigo/20 via-paper to-paper-dim shadow-[6px_6px_0_var(--color-ink)] lg:col-span-5 lg:row-span-4">
+                    class="relative flex flex-col overflow-hidden rounded-3xl border-2 border-ink bg-linear-to-b from-indigo/20 via-paper to-paper-dim shadow-[6px_6px_0_var(--color-ink)] lg:col-span-5 lg:row-span-4">
                     <div class="flex items-center justify-between px-5 pt-4">
                         <span class="font-romaji text-xs font-black uppercase tracking-widest text-ink-soft">
                             featured op
