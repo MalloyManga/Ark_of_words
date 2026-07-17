@@ -9,13 +9,45 @@ import type { OperatorDisplayItem, OperatorPortraitCrop } from '~/types/operator
 
 type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
 
-const createOperatorPortraitCrop = (placement: OperatorPortraitPlacement): OperatorPortraitCrop => {
+const fallbackOperatorPortraitPlacement: OperatorPortraitPlacement = {
+    widthPercent: 505,
+    leftPercent: -202,
+    topPercent: 5,
+    scale: 1,
+    rotationDegrees: 0,
+}
+
+/**
+ * 兼容不含立绘配置的旧缓存 并阻止不完整配置破坏整个干员页渲染
+ */
+const resolveOperatorPortraitPlacement = (
+    placement: OperatorPortraitPlacement | undefined,
+): OperatorPortraitPlacement => {
+    if (
+        placement
+        && Number.isFinite(placement.widthPercent)
+        && Number.isFinite(placement.leftPercent)
+        && Number.isFinite(placement.topPercent)
+        && Number.isFinite(placement.scale)
+        && Number.isFinite(placement.rotationDegrees)
+    ) {
+        return placement
+    }
+
+    return fallbackOperatorPortraitPlacement
+}
+
+const createOperatorPortraitCrop = (
+    placement: OperatorPortraitPlacement | undefined,
+): OperatorPortraitCrop => {
+    const resolvedPlacement = resolveOperatorPortraitPlacement(placement)
+
     return {
-        width: `${placement.widthPercent}%`,
+        width: `${resolvedPlacement.widthPercent}%`,
         maxWidth: 'none',
-        left: `${placement.leftPercent}%`,
-        top: `${placement.topPercent}%`,
-        transform: `scale(${placement.scale}) rotate(${placement.rotationDegrees}deg)`,
+        left: `${resolvedPlacement.leftPercent}%`,
+        top: `${resolvedPlacement.topPercent}%`,
+        transform: `scale(${resolvedPlacement.scale}) rotate(${resolvedPlacement.rotationDegrees}deg)`,
         transformOrigin: 'center center',
     }
 }

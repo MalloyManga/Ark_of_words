@@ -27,7 +27,7 @@ export interface OperatorCatalogItem {
     id: SupportedOperatorId
     displayName: string
     portraitUrl: string
-    portraitPlacement: OperatorPortraitPlacement
+    portraitPlacement?: OperatorPortraitPlacement
 }
 
 export interface OperatorCatalogResponse {
