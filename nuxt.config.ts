@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['./app/assets/css/main.css'],
   nitro: {
+    preset: 'node-server',
     externals: {
       external: ['kuromoji'],
     },
