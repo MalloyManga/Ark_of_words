@@ -24,10 +24,6 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
 })
 const { loadOperatorVoiceSet } = useOperatorVoiceData()
 
-if (selectedDifficulty.value !== 'custom') {
-    await loadOperatorVoiceSet(supportedOperatorIds)
-}
-
 const selectedDifficultyDetail = computed(() => practiceDifficultyDetails[selectedDifficulty.value])
 const {
     currentPracticeAudioPath,
@@ -114,6 +110,7 @@ resetTypingProgress = typingJudge.resetTypingProgress
 
 const {
     closePracticeInfoModal,
+    playPracticeAudio,
     switchToKanaMode,
     handlePracticeToolAction,
 } = usePracticeToolActions({
@@ -143,13 +140,35 @@ const handleWindowKeydown = (event: KeyboardEvent) => {
     }
 }
 
+/**
+ * 音频组件需要等当前渲染轮次完成后才能取得 template ref
+ * 首题在页面挂载时播放 后续题目由音频 URL 变化触发且每题只尝试一次
+ */
+const playCurrentPracticeAudioAfterRender = async (): Promise<void> => {
+    await nextTick()
+    await playPracticeAudio()
+}
+
+watch(practiceAudioSourceUrl, (nextAudioUrl, previousAudioUrl) => {
+    if (!nextAudioUrl || nextAudioUrl === previousAudioUrl) {
+        return
+    }
+
+    void playCurrentPracticeAudioAfterRender()
+}, { flush: 'post' })
+
 onMounted(() => {
     window.addEventListener('keydown', handleWindowKeydown)
+    void playCurrentPracticeAudioAfterRender()
 })
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleWindowKeydown)
 })
+
+if (selectedDifficulty.value !== 'custom') {
+    await loadOperatorVoiceSet(supportedOperatorIds)
+}
 </script>
 
 <template>
