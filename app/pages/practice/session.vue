@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { isPracticeDifficulty, practiceDifficultyDetails } from '~/constants/practiceDifficulties'
 import type { PracticeDifficulty } from '~/constants/practiceDifficulties'
+import { supportedOperatorIds } from '#shared/types/operatorApi'
 import { practiceDisplayModes } from '~/constants/practiceDisplayModes'
 import type { PracticeDisplayMode } from '~/constants/practiceDisplayModes'
 import type { PracticeAudioController } from '~/types/practiceAudio'
@@ -21,6 +22,12 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
     const difficultyValue = Array.isArray(difficultyQuery) ? difficultyQuery[0] : difficultyQuery
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
+const { loadOperatorVoiceSet } = useOperatorVoiceData()
+
+if (selectedDifficulty.value !== 'custom') {
+    await loadOperatorVoiceSet(supportedOperatorIds)
+}
+
 const selectedDifficultyDetail = computed(() => practiceDifficultyDetails[selectedDifficulty.value])
 const {
     currentPracticeAudioPath,
@@ -86,7 +93,7 @@ const typingJudge = usePracticeTypingJudge({
     },
 })
 const practiceAudioSourceUrl = computed(() => {
-    return selectedDifficulty.value === 'custom' ? currentPracticeAudioPath.value : mockPracticeAudioUrl
+    return currentPracticeAudioPath.value || mockPracticeAudioUrl
 })
 
 const {

@@ -1,7 +1,12 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
 import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
-import { createCustomPracticePool, createPracticePoolsFromOperatorVoiceData } from '~/constants/practicePools'
+import { supportedOperatorIds } from '#shared/types/operatorApi'
+import {
+    createCustomPracticePool,
+    createPracticePoolsFromOperatorVoiceData,
+    createPracticePoolsFromOperatorVoiceResponses,
+} from '~/constants/practicePools'
 import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
@@ -68,8 +73,15 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     const wisadelVoiceData = parsePrtsOperatorVoiceData(wisadelVoicePageRawData)
     const { selectedVoiceLines } = useCustomPracticeSelection()
     const operatorVoiceResponseMap = useOperatorVoiceResponseCache()
-    // mock 池先只接入 Wisadel 数据 这里保留数组入口 之后追加干员时不需要改池构建逻辑
-    const practicePools = createPracticePoolsFromOperatorVoiceData([wisadelVoiceData])
+    const mockPracticePools = createPracticePoolsFromOperatorVoiceData([wisadelVoiceData])
+    const realPracticePools = computed(() => {
+        const operatorVoiceResponses = supportedOperatorIds.flatMap((operatorId) => {
+            const operatorVoiceResponse = operatorVoiceResponseMap.value[operatorId]
+            return operatorVoiceResponse ? [operatorVoiceResponse] : []
+        })
+
+        return createPracticePoolsFromOperatorVoiceResponses(operatorVoiceResponses)
+    })
     const customPracticePool = computed(() => {
         return createCustomPracticePool(selectedVoiceLines.value, operatorVoiceResponseMap.value)
     })
@@ -78,7 +90,13 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
             return customPracticePool.value
         }
 
-        return practicePools.find((practicePool) => practicePool.id === toValue(poolId))
+        const realPracticePool = realPracticePools.value.find((practicePool) => practicePool.id === toValue(poolId))
+
+        if (realPracticePool?.items.length) {
+            return realPracticePool
+        }
+
+        return mockPracticePools.find((practicePool) => practicePool.id === toValue(poolId))
     })
     const {
         currentPracticePoolItem,
@@ -90,14 +108,7 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     })
     const currentPracticeLine = computed(() => currentPracticePoolItem.value?.voiceLine)
     const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? '')
-    const currentPracticeAudioPath = computed(() => {
-        if (currentPracticePoolItem.value?.audioUrl) {
-            return currentPracticePoolItem.value.audioUrl
-        }
-
-        const practiceLine = currentPracticeLine.value
-        return practiceLine ? `/${wisadelVoiceData.japaneseAudioBasePath}/${practiceLine.audioFileName}` : ''
-    })
+    const currentPracticeAudioPath = computed(() => currentPracticePoolItem.value?.audioUrl ?? '')
     const currentPracticeChineseText = computed(() => currentPracticeLine.value?.chineseText ?? '')
     const targetPracticeText = computed(() => currentPracticeLine.value?.japaneseText ?? '')
     const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? '暂无练习题目')
