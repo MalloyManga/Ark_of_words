@@ -35,11 +35,11 @@
 ### 阶段 2：按需数据获取机制 (Nuxt Server API)
 - [x] 验证 PRTS Wiki 的 MediaWiki API (`api.php`) 能获取干员“语音记录”原始数据。
 - [x] 编写 PRTS 原始 JSON 解析 / 提取工具，能从 mock 数据中整理干员语音文本与音频文件信息。
-- [ ] 在 `server/api/voice.ts` 开发按需获取接口：用户选择干员时触发请求，请求结束后由 Serverless 平台释放运行环境。
-- [ ] 使用 `defineCachedEventHandler` / Nitro Cache 做长 TTL 缓存与 SWR，减少对 PRTS 的重复请求。
-- [ ] 为同一个干员的刷新请求增加并发保护，避免冷缓存时多个用户同时击穿缓存。
+- [x] 开发 `server/api/operators` 与 `server/api/operators/:operatorId/voices` 按需获取接口，并使用受控干员白名单校验请求参数。
+- [x] 使用 `defineCachedEventHandler` / Nitro Cache 做 30 天缓存与 90 天 SWR，并将缓存持久化到服务器磁盘。
+- [x] 使用 Nitro 单进程 pending 请求合并，避免同一个干员在冷缓存时重复请求 PRTS。
 - [ ] 如果 MediaWiki API 无法覆盖必要内容，再评估 `linkedom` 等轻量 HTML 解析方案；不优先使用 Puppeteer 这类重型浏览器爬虫。
-- [ ] 处理接口异常、超时、缓存回退和基础访问礼仪（明确 User-Agent、控制请求频率、不批量抓取）。
+- [x] 处理接口异常、10 秒超时、SWR 旧缓存回退和基础访问礼仪（明确 User-Agent、按需请求、不批量抓取）。
 
 ### 阶段 3：音频控制与核心打字逻辑
 - [ ] 封装 HTML5 `<audio>` 播放器组件，实现播放、暂停、进度控制。
