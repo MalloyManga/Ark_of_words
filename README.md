@@ -27,8 +27,8 @@
 - [x] 建立响应式布局，覆盖手机、平板和桌面常用视口。
 
 #### 阶段 1 收尾与待办
-- [ ] 音频目前只有本地 mock wav 播放路径，还需要封装完整 HTML5 音频组件并接入真实 PRTS 音频地址。
-- [ ] 自由配置页已能选择语音，但所选语音池跳转到练习会话的完整流程仍待接线。
+- [x] 封装无视觉 HTML5 音频控制组件，并接入当前真实 PRTS 音频地址。
+- [x] 自由配置页所选语音已能生成真实练习池并进入练习会话。
 - [x] 难度映射与练习池已接入六位 MVP 干员的真实后端数据，每档按固定语音编号生成 30 题。
 - [x] 使用 Kuromoji 与 WanaKana 在服务端生成真实假名 罗马字 原形和词性，并随干员语音长期缓存。
 
@@ -42,8 +42,8 @@
 - [x] 处理接口异常、10 秒超时、SWR 旧缓存回退和基础访问礼仪（明确 User-Agent、按需请求、不批量抓取）。
 
 ### 阶段 3：音频控制与核心打字逻辑
-- [ ] 封装 HTML5 `<audio>` 播放器组件，实现播放、暂停、进度控制。
-- [ ] 音频按需加载：目前只有当前 mock 音频播放，后续接入真实音频时需要避免预加载全部语音。
+- [ ] 音频控制器已支持播放 暂停和进度跳转，仍待设计可视化暂停与进度操作 UI。
+- [x] 音频按需加载，只绑定当前题目并使用 `preload="none"`，不预加载整个语音池。
 - [x] 编写文本标准化函数，去除原始日文台词中的常见标点，统一转换为停顿空格。
 - [x] 开发核心打字判定逻辑，监听真实键入事件并即时判定输入内容。
 - [x] 添加正确 / 错误状态展示、错误标红与完成后的下一题触发。
@@ -79,9 +79,9 @@
 - **样式方案**：[Tailwind CSS](https://tailwindcss.com/)
 - **文本数据获取**：使用 Nuxt Server API 按需获取 PRTS Wiki 数据；优先解析 MediaWiki API 返回的 wikitext，必要时再使用 `linkedom` 等轻量 HTML 解析方案。
 - **缓存策略**：使用 Nitro Cache / `defineCachedEventHandler`，配合长 TTL、SWR 和失败回退，降低函数调用和 PRTS 请求量。
-- **运行成本策略**：采用 Serverless 请求生命周期，用户访问时触发数据获取，请求完成后释放运行环境；避免长期运行爬虫服务，避免音频中转带来的带宽成本。
+- **运行成本策略**：雨云单机使用长期 Node 进程复用 Kuromoji 词典，PRTS 文本和读音结果写入持久化 Nitro 缓存；避免长期爬虫和无边界音频中转。
 - **日语形态素解析**：Kuromoji 在 Nitro 服务端懒加载词典，WanaKana 生成假名与罗马字，结果随语音接口缓存。
-- **部署方案**：静态前端 + Serverless API 混合部署，优先选择带免费额度的平台（如 Vercel、Netlify 或 Cloudflare Pages Functions）。
+- **部署方案**：雨云 Linux 云服务器运行 Docker Compose，Nuxt node-server 提供页面与 API，Caddy 负责反向代理和 HTTPS，named volume 持久化 Nitro 缓存。
 
 ## 🚀 快速开始
 
@@ -110,7 +110,7 @@ npm run dev
 npm run generate
 ```
 
-如果需要启用 `server/api` 的按需数据获取能力，应使用支持 Nuxt Server API / Serverless Functions 的部署方式。
+雨云 Docker Compose 的完整准备与操作步骤见 [`RAINYUN_DEPLOYMENT.md`](./RAINYUN_DEPLOYMENT.md)。
 
 ## 📄 许可与声明
 
