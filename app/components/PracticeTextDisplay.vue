@@ -77,7 +77,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
 <template>
     <div class="flex min-h-8 w-full items-center justify-center">
         <p v-show="!isRomajiModeEnabled && shouldShowKanaHint && kanaPracticeUnitDisplays.length === 0"
-            class="font-[Yu_Gothic] text-[15px] font-medium tracking-[0.2em] text-emerald-700/70">
+            class="font-[Yu_Gothic] text-[15px] font-medium tracking-[0.2em] text-ink-soft/60">
             {{ kanaHint }}
         </p>
         <p v-show="isRomajiModeEnabled || !shouldShowKanaHint || kanaPracticeUnitDisplays.length > 0" class="sr-only">
@@ -85,7 +85,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
         </p>
     </div>
 
-    <div class="flex min-h-36 w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-[#2563eb]" :class="isRomajiModeEnabled
+    <div class="flex min-h-36 w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-ink" :class="isRomajiModeEnabled
         ? 'font-fredoka text-2xl leading-[1.18] sm:text-3xl lg:text-[32px]'
         : 'text-4xl leading-[1.28]'">
 
@@ -94,10 +94,10 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
             class="flex max-w-full wrap-break-word flex-wrap items-end justify-center gap-x-[0.42em] gap-y-6 pt-2">
             <span v-for="unitDisplay in romajiPracticeUnitDisplays" :key="unitDisplay.id"
                 class="inline-flex flex-col items-center justify-end gap-y-0.5">
-                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-emerald-700/70">
+                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-ink-soft/60">
                     {{ shouldShowKanaHint && shouldShowUnitKanaText(unitDisplay.unit) ? unitDisplay.unit.kanaText : '' }}
                 </span>
-                <span class="min-h-5 font-[Yu_Gothic] text-[20px] leading-none text-emerald-900 mb-1">
+                <span class="min-h-5 font-[Yu_Gothic] text-[20px] leading-none text-ink-soft mb-1">
                     {{ shouldShowKanaHint ? unitDisplay.unit.sourceText : '' }}
                 </span>
                 <span class="inline-flex items-end">
@@ -142,7 +142,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
             <span v-for="unitDisplay in kanaPracticeUnitDisplays" :key="unitDisplay.id"
                 class="inline-flex flex-col items-center justify-end gap-y-1.5">
                 <!-- 显示假名 -->
-                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-emerald-700/70">
+                <span class="min-h-3.75 font-[Yu_Gothic] text-[15px] leading-none text-ink-soft/60">
                     {{ shouldShowKanaUnitKanaText(unitDisplay) ? unitDisplay.kanaText : '' }}
                 </span>
                 <!-- 逐字符显示 characters -->
@@ -191,7 +191,7 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
 }
 
 .typing-caret::before {
-    background-color: #fbbf24;
+    background-color: #ff5b2e;
     content: '';
     display: block;
     height: 100%;

@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 <template>
     <button type="button"
-        class="inline-flex shrink-0 cursor-pointer items-center justify-center text-[#2563eb] transition-colors duration-150 hover:text-emerald-600"
+        class="nb-card nb-interactive inline-flex size-12 shrink-0 cursor-pointer items-center justify-center text-ink transition-colors duration-150 hover:text-coral"
         :aria-label="label" @click.stop="emit('click')">
         <slot />
     </button>
