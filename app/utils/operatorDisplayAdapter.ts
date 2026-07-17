@@ -1,8 +1,24 @@
-import { casterProfessionIcon, defaultOperatorPortraitCrop } from '~/constants/operatorDisplayAssets'
-import type { OperatorCatalogItem, OperatorVoiceResponse, SupportedOperatorId } from '#shared/types/operatorApi'
-import type { OperatorDisplayItem } from '~/types/operator'
+import { casterProfessionIcon } from '~/constants/operatorDisplayAssets'
+import type {
+    OperatorCatalogItem,
+    OperatorPortraitPlacement,
+    OperatorVoiceResponse,
+    SupportedOperatorId,
+} from '#shared/types/operatorApi'
+import type { OperatorDisplayItem, OperatorPortraitCrop } from '~/types/operator'
 
 type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
+
+const createOperatorPortraitCrop = (placement: OperatorPortraitPlacement): OperatorPortraitCrop => {
+    return {
+        width: `${placement.widthPercent}%`,
+        maxWidth: 'none',
+        left: `${placement.leftPercent}%`,
+        top: `${placement.topPercent}%`,
+        transform: `scale(${placement.scale}) rotate(${placement.rotationDegrees}deg)`,
+        transformOrigin: 'center center',
+    }
+}
 
 /**
  * 将稳定 API DTO 转成现有纯展示组件需要的模型
@@ -18,7 +34,7 @@ export const createOperatorDisplayItems = (
         id: catalogItem.id,
         displayName: catalogItem.displayName,
         portrait: catalogItem.portraitUrl,
-        portraitCrop: defaultOperatorPortraitCrop,
+        portraitCrop: createOperatorPortraitCrop(catalogItem.portraitPlacement),
         professionIconSrc: casterProfessionIcon,
         voiceLines: operatorVoiceResponseMap[catalogItem.id]?.lines ?? [],
     }))

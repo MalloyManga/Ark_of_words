@@ -55,6 +55,7 @@ export const getPrtsOperatorCatalog = async (): Promise<OperatorCatalogResponse>
                 id: operator.id,
                 displayName: operator.displayName,
                 portraitUrl,
+                portraitPlacement: operator.portraitPlacement,
             }
         }),
     }

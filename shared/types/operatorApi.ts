@@ -15,10 +15,19 @@ export const isSupportedOperatorId = (value: string): value is SupportedOperator
     return (supportedOperatorIds as readonly string[]).includes(value)
 }
 
+export interface OperatorPortraitPlacement {
+    widthPercent: number
+    leftPercent: number
+    topPercent: number
+    scale: number
+    rotationDegrees: number
+}
+
 export interface OperatorCatalogItem {
     id: SupportedOperatorId
     displayName: string
     portraitUrl: string
+    portraitPlacement: OperatorPortraitPlacement
 }
 
 export interface OperatorCatalogResponse {

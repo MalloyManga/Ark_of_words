@@ -16,7 +16,7 @@ export default defineCachedEventHandler(async () => {
         })
     }
 }, {
-    name: 'operator-catalog',
+    name: 'operator-catalog-with-placement',
     group: 'prts',
     maxAge: OPERATOR_CACHE_MAX_AGE_SECONDS,
     staleMaxAge: OPERATOR_CACHE_STALE_MAX_AGE_SECONDS,
