@@ -82,8 +82,14 @@ export const usePracticeTypingJudge = ({
 
     // 罗马字显示目标由 reading units 派生
     // 这样第三方分词和转换库接入后只需要替换 PracticeReadingUnit 数据源
+    const romajiReadingUnits = computed(() => {
+        return toValue(practiceReadingUnits).filter((unit) => {
+            return normalizePracticeInputText(unit.romajiText) !== ''
+        })
+    })
+
     const romajiDisplayText = computed(() => {
-        return toValue(practiceReadingUnits).map((unit) => unit.romajiText).join(' ')
+        return romajiReadingUnits.value.map((unit) => unit.romajiText).join(' ')
     })
 
     const activeTargetPracticeText = computed(() => {
@@ -181,7 +187,7 @@ export const usePracticeTypingJudge = ({
             ? firstRomajiSubmittedErrorIndex.value
             : submittedTextCharacters.value.length
 
-        return toValue(practiceReadingUnits).map((unit) => {
+        return romajiReadingUnits.value.map((unit) => {
             const unitInputCharacterCount = Array.from(unit.romajiText).length
             const startInputIndex = passedInputCharacterCount
             const endInputIndex = passedInputCharacterCount + unitInputCharacterCount
@@ -465,6 +471,7 @@ export const usePracticeTypingJudge = ({
         submittedText.value = nextSubmittedText
 
         notifyPracticeCompletedIfCorrect(nextSubmittedText)
+        nextTick(focusInputReceiver)
     }
 
     /**

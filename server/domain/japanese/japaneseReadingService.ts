@@ -47,17 +47,56 @@ const createGapReadingUnit = (unitId: string, gapText: string): JapaneseReadingU
     }
 }
 
+const imeRomajiOptions = {
+    customRomajiMapping: {
+        ん: 'nn',
+    },
+} as const
+
+const convertKanaToImeRomaji = (kanaText: string): string => {
+    return toRomaji(kanaText, imeRomajiOptions).toLowerCase()
+}
+
+const getTokenKanaText = (token: IpadicFeatures): string => {
+    return toHiragana(token.reading ?? token.surface_form)
+}
+
+/**
+ * Kuromoji 可能把小 っ 放在前一个 token 末尾
+ * WanaKana 单独转换该 token 时无法知道要重复哪个辅音
+ * 这里借用下一个 token 的读音算出当前 token 应承担的促音字符
+ */
+const getTokenImeRomajiText = (
+    token: IpadicFeatures,
+    nextToken?: IpadicFeatures,
+): string => {
+    const kanaText = getTokenKanaText(token)
+
+    if (!kanaText.endsWith('っ') || !nextToken || /^\s+$/u.test(nextToken.surface_form)) {
+        return convertKanaToImeRomaji(kanaText)
+    }
+
+    const nextKanaText = getTokenKanaText(nextToken)
+    const nextRomajiText = convertKanaToImeRomaji(nextKanaText)
+    const combinedRomajiText = convertKanaToImeRomaji(`${kanaText}${nextKanaText}`)
+
+    return combinedRomajiText.endsWith(nextRomajiText)
+        ? combinedRomajiText.slice(0, -nextRomajiText.length)
+        : convertKanaToImeRomaji(kanaText)
+}
+
 const createTokenReadingUnit = (
     unitId: string,
     token: IpadicFeatures,
+    nextToken?: IpadicFeatures,
 ): JapaneseReadingUnit => {
-    const readingSource = token.reading ?? token.surface_form
+    const kanaText = getTokenKanaText(token)
 
     return {
         id: unitId,
         sourceText: token.surface_form,
-        kanaText: toHiragana(readingSource),
-        romajiText: toRomaji(readingSource).toLowerCase(),
+        kanaText,
+        romajiText: getTokenImeRomajiText(token, nextToken),
         basicForm: token.basic_form === '*' ? token.surface_form : token.basic_form,
         partOfSpeech: token.pos,
     }
@@ -88,7 +127,10 @@ export const createJapaneseReadingUnits = async (
             readingUnits.push(createGapReadingUnit(`${lineId}:gap:${tokenIndex}`, gapText))
         }
 
-        readingUnits.push(createTokenReadingUnit(`${lineId}:token:${tokenIndex}`, token))
+        const readingUnit = /^\s+$/u.test(token.surface_form)
+            ? createGapReadingUnit(`${lineId}:gap:${tokenIndex}`, token.surface_form)
+            : createTokenReadingUnit(`${lineId}:token:${tokenIndex}`, token, tokens[tokenIndex + 1])
+        readingUnits.push(readingUnit)
         sourceTextCursor = tokenStartIndex + token.surface_form.length
     })
 
