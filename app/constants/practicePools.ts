@@ -1,7 +1,11 @@
 import { practiceDifficultyVoiceNumberMap } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
-import type { OperatorVoiceResponse, SupportedOperatorId } from '#shared/types/operatorApi'
+import type {
+    OperatorVoiceLineResponse,
+    OperatorVoiceResponse,
+    SupportedOperatorId,
+} from '#shared/types/operatorApi'
 
 export interface PracticeOperatorIdentity {
     id: string
@@ -24,6 +28,23 @@ interface CustomPracticePoolSelection {
 
 type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
 
+const createPracticePoolItemFromOperatorVoiceResponse = (
+    operatorVoiceResponse: OperatorVoiceResponse,
+    voiceLine: OperatorVoiceLineResponse,
+): PracticePoolItem => {
+    return {
+        id: `${operatorVoiceResponse.id}:${voiceLine.id}`,
+        operator: {
+            id: operatorVoiceResponse.id,
+            name: operatorVoiceResponse.displayName,
+            voiceKey: operatorVoiceResponse.voiceKey,
+        },
+        voiceNumber: voiceLine.voiceNumber,
+        voiceLine,
+        audioUrl: voiceLine.audioUrl,
+    }
+}
+
 export const createCustomPracticePool = (
     selections: readonly CustomPracticePoolSelection[],
     operatorVoiceResponseMap: OperatorVoiceResponseMap,
@@ -36,17 +57,7 @@ export const createCustomPracticePool = (
             return []
         }
 
-        return [{
-            id: `${operatorVoiceResponse.id}:${voiceLine.id}`,
-            operator: {
-                id: operatorVoiceResponse.id,
-                name: operatorVoiceResponse.displayName,
-                voiceKey: operatorVoiceResponse.voiceKey,
-            },
-            voiceNumber: voiceLine.voiceNumber,
-            voiceLine,
-            audioUrl: voiceLine.audioUrl,
-        }]
+        return [createPracticePoolItemFromOperatorVoiceResponse(operatorVoiceResponse, voiceLine)]
     })
 
     return { id: 'custom', items }
@@ -96,11 +107,7 @@ const createStandardDifficultyPoolItems = (
     return allPoolItems.filter((poolItem) => acceptedVoiceNumbers.has(poolItem.voiceNumber))
 }
 
-export const createPracticePoolsFromOperatorVoiceData = (
-    operatorVoiceDataList: readonly PrtsOperatorVoiceData[],
-): readonly PracticePool[] => {
-    const allPoolItems = createPracticePoolItems(operatorVoiceDataList)
-
+const createPracticePoolsFromItems = (allPoolItems: readonly PracticePoolItem[]): readonly PracticePool[] => {
     return [
         {
             id: 'easy',
@@ -115,9 +122,28 @@ export const createPracticePoolsFromOperatorVoiceData = (
             items: createStandardDifficultyPoolItems('hard', allPoolItems),
         },
         {
-            // 本地 mock 数据仍保留全量池 真实自由配置会由 createCustomPracticePool 单独生成
             id: 'custom',
             items: allPoolItems,
         },
     ]
+}
+
+export const createPracticePoolsFromOperatorVoiceResponses = (
+    operatorVoiceResponses: readonly OperatorVoiceResponse[],
+): readonly PracticePool[] => {
+    const allPoolItems = operatorVoiceResponses.flatMap((operatorVoiceResponse) => {
+        return operatorVoiceResponse.lines.map((voiceLine) => {
+            return createPracticePoolItemFromOperatorVoiceResponse(operatorVoiceResponse, voiceLine)
+        })
+    })
+
+    return createPracticePoolsFromItems(allPoolItems)
+}
+
+export const createPracticePoolsFromOperatorVoiceData = (
+    operatorVoiceDataList: readonly PrtsOperatorVoiceData[],
+): readonly PracticePool[] => {
+    const allPoolItems = createPracticePoolItems(operatorVoiceDataList)
+
+    return createPracticePoolsFromItems(allPoolItems)
 }
