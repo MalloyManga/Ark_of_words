@@ -22,7 +22,13 @@ const encodePathSegments = (path: string): string => {
 }
 
 const createAudioUrl = (audioBasePath: string, audioFileName: string): string => {
-    const encodedAudioPath = encodePathSegments(`${audioBasePath}/${audioFileName}`)
+    const playbackFileName = audioFileName.replace(/\.wav$/iu, '.mp3')
+
+    if (playbackFileName === audioFileName) {
+        throw new Error(`PRTS 返回了不支持的音频文件名 ${audioFileName}`)
+    }
+
+    const encodedAudioPath = encodePathSegments(`${audioBasePath}/${playbackFileName}`)
     return new URL(`/assets/audio/${encodedAudioPath}`, PRTS_AUDIO_ORIGIN).toString()
 }
 
