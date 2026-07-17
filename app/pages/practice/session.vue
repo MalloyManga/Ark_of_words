@@ -141,35 +141,8 @@ onBeforeUnmount(() => {
             <div class="size-200 bg-blue-400/5 dark:bg-cyan-900/10 rounded-full blur-[120px]"></div>
         </div>
 
-        <!-- 顶部 HUD 信息栏 -->
-        <header class="relative z-20 flex items-center justify-between gap-4 max-w-7xl mx-auto w-full mb-8">
-            <!-- 返回按钮 -->
-            <NuxtLink to="/practice"
-                class="group flex items-center justify-center w-12 h-12 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-cyan-400 hover:-translate-x-1 transition-all"
-                aria-label="返回难度选择">
-                <IconBack class="w-5 h-5" />
-            </NuxtLink>
-
-            <!-- 右侧状态面板 -->
-            <div
-                class="flex items-center gap-3 sm:gap-4 px-4 py-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm">
-                <p class="hidden sm:block max-w-50 truncate text-sm font-bold text-slate-500 dark:text-slate-400">
-                    {{ currentPracticeLineTitle }}
-                </p>
-
-                <div class="w-px h-4 bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
-
-                <span
-                    class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-cyan-900/50 text-blue-600 dark:text-cyan-400 text-xs font-black tracking-wide">
-                    {{ selectedDifficultyDetail.label }}
-                </span>
-
-                <div class="flex items-baseline gap-1 text-blue-500 dark:text-cyan-500 font-black">
-                    <span class="text-base">1</span>
-                    <span class="text-xs opacity-50">/ 5</span>
-                </div>
-            </div>
-        </header>
+        <PracticeSessionHeader :current-practice-line-title="currentPracticeLineTitle"
+            :difficulty-label="selectedDifficultyDetail.label" />
 
         <!-- 核心打字练习区 -->
         <section
@@ -192,14 +165,7 @@ onBeforeUnmount(() => {
 
                 <!-- 待确认 IME 候选词 HUD (更加科技感的样式) -->
                 <div class="relative mt-10 h-10 flex items-center justify-center w-full">
-                    <div v-if="pendingInputText"
-                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 dark:bg-cyan-500/10 border border-blue-500/20 dark:border-cyan-500/20 animate-pulse">
-                        <span class="text-xs font-bold text-blue-400 dark:text-cyan-600">INPUTTING</span>
-                        <span
-                            class="text-lg font-black text-blue-600 dark:text-cyan-400 tracking-widest border-b-2 border-blue-500 dark:border-cyan-400 pb-0.5">
-                            {{ pendingInputText }}
-                        </span>
-                    </div>
+                    <PracticePendingInputHud :pending-input-text="pendingInputText" />
 
                     <!-- 隐藏的真实输入框 (不可见但接收焦点) -->
                     <input ref="inputReceiverRef" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
@@ -210,10 +176,8 @@ onBeforeUnmount(() => {
 
                 <!-- 中文译文区域 -->
                 <div class="mt-6 flex h-8 items-center justify-center text-center">
-                    <p v-show="shouldShowTranslation"
-                        class="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400 tracking-wide transition-opacity duration-300">
-                        {{ currentPracticeChineseText || '...' }}
-                    </p>
+                    <PracticeTranslationText :text="currentPracticeChineseText"
+                        :is-visible="shouldShowTranslation" />
                 </div>
             </div>
 
