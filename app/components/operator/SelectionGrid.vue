@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { operatorFrameBack, operatorFrameFront } from '~/constants/mockOperators'
+import { operatorFrameBack, operatorFrameFront } from '~/constants/operatorDisplayAssets'
 import type { OperatorDisplayItem } from '~/types/operator'
 
 interface SelectionGridProps {

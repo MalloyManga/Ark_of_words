@@ -1,5 +1,11 @@
 import type { CSSProperties } from 'vue'
-import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
+
+export interface OperatorDisplayVoiceLine {
+    id: string
+    title: string
+    japaneseText: string
+    chineseText: string
+}
 
 export interface OperatorPortraitCrop extends CSSProperties {
     width: string
@@ -14,5 +20,5 @@ export interface OperatorDisplayItem {
     portrait: string
     portraitCrop: OperatorPortraitCrop
     professionIconSrc: string
-    voiceLines: readonly PrtsVoiceLine[]
+    voiceLines: readonly OperatorDisplayVoiceLine[]
 }
