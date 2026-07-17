@@ -1,4 +1,4 @@
-import { practiceDifficultyVoiceNumberMap } from '~/constants/practiceDifficulties'
+import { getPracticeDifficultyByVoiceTitle } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 import type { JapaneseReadingUnit } from '#shared/types/japaneseReading'
@@ -105,9 +105,9 @@ const createStandardDifficultyPoolItems = (
     poolId: Exclude<PracticePoolId, 'custom'>,
     allPoolItems: readonly PracticePoolItem[],
 ): readonly PracticePoolItem[] => {
-    const acceptedVoiceNumbers = new Set<number>(practiceDifficultyVoiceNumberMap[poolId])
-
-    return allPoolItems.filter((poolItem) => acceptedVoiceNumbers.has(poolItem.voiceNumber))
+    return allPoolItems.filter((poolItem) => {
+        return getPracticeDifficultyByVoiceTitle(poolItem.voiceLine.title) === poolId
+    })
 }
 
 const createPracticePoolsFromItems = (allPoolItems: readonly PracticePoolItem[]): readonly PracticePool[] => {

@@ -6,10 +6,16 @@ interface DifficultyOptionCardProps {
 }
 
 const { option } = defineProps<DifficultyOptionCardProps>()
+
+const optionDestination = computed(() => {
+    return option.value === 'custom'
+        ? '/operators'
+        : `/practice/session?difficulty=${option.value}`
+})
 </script>
 
 <template>
-    <NuxtLink :to="`/practice/session?difficulty=${option.value}`"
+    <NuxtLink :to="optionDestination"
         class="group relative overflow-hidden rounded-3xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-white/80 dark:border-slate-700/50 p-6 flex items-center gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
         <div
             :class="`absolute inset-0 opacity-0 group-hover:opacity-10 bg-linear-to-br ${option.gradient} dark:opacity-0 dark:group-hover:opacity-20 transition-opacity duration-500`">
