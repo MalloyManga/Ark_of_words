@@ -30,7 +30,7 @@
 - [ ] 音频目前只有本地 mock wav 播放路径，还需要封装完整 HTML5 音频组件并接入真实 PRTS 音频地址。
 - [ ] 自由配置页已能选择语音，但所选语音池跳转到练习会话的完整流程仍待接线。
 - [x] 难度映射与练习池已接入六位 MVP 干员的真实后端数据，每档按固定语音编号生成 30 题。
-- [ ] 目前罗马字与假名读音数据仍使用手写 mock，尚未接入第三方假名 / 罗马字 / 读音生成库。
+- [x] 使用 Kuromoji 与 WanaKana 在服务端生成真实假名 罗马字 原形和词性，并随干员语音长期缓存。
 
 ### 阶段 2：按需数据获取机制 (Nuxt Server API)
 - [x] 验证 PRTS Wiki 的 MediaWiki API (`api.php`) 能获取干员“语音记录”原始数据。
@@ -80,7 +80,7 @@
 - **文本数据获取**：使用 Nuxt Server API 按需获取 PRTS Wiki 数据；优先解析 MediaWiki API 返回的 wikitext，必要时再使用 `linkedom` 等轻量 HTML 解析方案。
 - **缓存策略**：使用 Nitro Cache / `defineCachedEventHandler`，配合长 TTL、SWR 和失败回退，降低函数调用和 PRTS 请求量。
 - **运行成本策略**：采用 Serverless 请求生命周期，用户访问时触发数据获取，请求完成后释放运行环境；避免长期运行爬虫服务，避免音频中转带来的带宽成本。
-- **日语形态素解析**：`kuromoji.js` (在静态阶段或客户端完成词性还原)。
+- **日语形态素解析**：Kuromoji 在 Nitro 服务端懒加载词典，WanaKana 生成假名与罗马字，结果随语音接口缓存。
 - **部署方案**：静态前端 + Serverless API 混合部署，优先选择带免费额度的平台（如 Vercel、Netlify 或 Cloudflare Pages Functions）。
 
 ## 🚀 快速开始
