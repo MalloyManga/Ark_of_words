@@ -1,6 +1,7 @@
 import { practiceDifficultyVoiceNumberMap } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
+import type { OperatorVoiceResponse, SupportedOperatorId } from '#shared/types/operatorApi'
 
 export interface PracticeOperatorIdentity {
     id: string
@@ -13,6 +14,42 @@ export interface PracticePoolItem {
     operator: PracticeOperatorIdentity
     voiceNumber: number
     voiceLine: PrtsVoiceLine
+    audioUrl?: string
+}
+
+interface CustomPracticePoolSelection {
+    operatorId: SupportedOperatorId
+    voiceLineId: string
+}
+
+type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
+
+export const createCustomPracticePool = (
+    selections: readonly CustomPracticePoolSelection[],
+    operatorVoiceResponseMap: OperatorVoiceResponseMap,
+): PracticePool => {
+    const items = selections.flatMap((selection): readonly PracticePoolItem[] => {
+        const operatorVoiceResponse = operatorVoiceResponseMap[selection.operatorId]
+        const voiceLine = operatorVoiceResponse?.lines.find((line) => line.id === selection.voiceLineId)
+
+        if (!operatorVoiceResponse || !voiceLine) {
+            return []
+        }
+
+        return [{
+            id: `${operatorVoiceResponse.id}:${voiceLine.id}`,
+            operator: {
+                id: operatorVoiceResponse.id,
+                name: operatorVoiceResponse.displayName,
+                voiceKey: operatorVoiceResponse.voiceKey,
+            },
+            voiceNumber: voiceLine.voiceNumber,
+            voiceLine,
+            audioUrl: voiceLine.audioUrl,
+        }]
+    })
+
+    return { id: 'custom', items }
 }
 
 export interface PracticePool {
@@ -78,7 +115,7 @@ export const createPracticePoolsFromOperatorVoiceData = (
             items: createStandardDifficultyPoolItems('hard', allPoolItems),
         },
         {
-            // 自由配置池暂时承载全部 mock 台词 之后会替换成用户手动选择结果
+            // 本地 mock 数据仍保留全量池 真实自由配置会由 createCustomPracticePool 单独生成
             id: 'custom',
             items: allPoolItems,
         },

@@ -1,7 +1,7 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
 import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
-import { createPracticePoolsFromOperatorVoiceData } from '~/constants/practicePools'
+import { createCustomPracticePool, createPracticePoolsFromOperatorVoiceData } from '~/constants/practicePools'
 import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
@@ -66,9 +66,18 @@ const createPlaceholderKanaHint = (text: string) => {
 export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineSourceOptions): PracticeLineSource => {
     // 练习数据源只负责选择当前语音行 不保存输入 判定 光标等练习状态
     const wisadelVoiceData = parsePrtsOperatorVoiceData(wisadelVoicePageRawData)
+    const { selectedVoiceLines } = useCustomPracticeSelection()
+    const operatorVoiceResponseMap = useOperatorVoiceResponseCache()
     // mock 池先只接入 Wisadel 数据 这里保留数组入口 之后追加干员时不需要改池构建逻辑
     const practicePools = createPracticePoolsFromOperatorVoiceData([wisadelVoiceData])
+    const customPracticePool = computed(() => {
+        return createCustomPracticePool(selectedVoiceLines.value, operatorVoiceResponseMap.value)
+    })
     const currentPracticePool = computed(() => {
+        if (toValue(poolId) === 'custom') {
+            return customPracticePool.value
+        }
+
         return practicePools.find((practicePool) => practicePool.id === toValue(poolId))
     })
     const {
@@ -80,14 +89,18 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         practicePool: currentPracticePool,
     })
     const currentPracticeLine = computed(() => currentPracticePoolItem.value?.voiceLine)
-    const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? wisadelVoiceData.operatorName)
+    const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? '')
     const currentPracticeAudioPath = computed(() => {
+        if (currentPracticePoolItem.value?.audioUrl) {
+            return currentPracticePoolItem.value.audioUrl
+        }
+
         const practiceLine = currentPracticeLine.value
         return practiceLine ? `/${wisadelVoiceData.japaneseAudioBasePath}/${practiceLine.audioFileName}` : ''
     })
     const currentPracticeChineseText = computed(() => currentPracticeLine.value?.chineseText ?? '')
     const targetPracticeText = computed(() => currentPracticeLine.value?.japaneseText ?? '')
-    const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? `${wisadelVoiceData.operatorName}的不知道哪一条语音`)
+    const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? '暂无练习题目')
     const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText.value))
     const practiceInfoItems = computed<readonly PracticeInfoItem[]>(() => [
         { label: '干员', value: currentPracticeOperatorName.value || '未知干员' },

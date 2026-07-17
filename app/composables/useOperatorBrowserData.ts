@@ -1,7 +1,6 @@
 import type { OperatorCatalogResponse, OperatorVoiceResponse, SupportedOperatorId } from '#shared/types/operatorApi'
 import { createOperatorDisplayItems } from '~/utils/operatorDisplayAdapter'
 
-type OperatorVoiceResponseMap = Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>
 type OperatorVoiceErrorMap = Partial<Record<SupportedOperatorId, string>>
 
 const getRequestErrorMessage = (error: unknown): string => {
@@ -19,7 +18,7 @@ export const useOperatorBrowserData = async () => {
         '/api/operators',
         { key: 'supported-operator-catalog' },
     )
-    const operatorVoiceResponseMap = useState<OperatorVoiceResponseMap>('operator-voice-response-cache', () => ({}))
+    const operatorVoiceResponseMap = useOperatorVoiceResponseCache()
     const operatorVoiceErrorMap = ref<OperatorVoiceErrorMap>({})
     const pendingOperatorIds = ref<ReadonlySet<SupportedOperatorId>>(new Set<SupportedOperatorId>())
 
