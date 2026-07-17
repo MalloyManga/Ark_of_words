@@ -87,18 +87,13 @@ onBeforeUnmount(clearTypewriterTimer)
 </script>
 
 <template>
-    <div class="max-w-[min(86vw,680px)] text-right">
-        <p class="font-zh-playful select-none text-sm font-black uppercase tracking-[0.18em] text-emerald-700">
-            <span class="inline-block rounded-full bg-white/85 px-3 py-1 shadow-[3px_3px_0_#86efac]">
-                {{ activeLineInfo.label }}
-            </span>
+    <div class="mt-4 text-left">
+        <span class="nb-sticker bg-butter font-zh-playful text-xs text-ink">
+            {{ activeLineInfo.label || 'VOICE' }}
+        </span>
+        <p class="typewriter-bubble mt-3 text-2xl font-black leading-[1.4] tracking-normal text-ink sm:text-3xl font-zh-playful">
+            <span>{{ visibleText }}</span><span class="typewriter-caret" aria-hidden="true" />
         </p>
-        <div class="mt-3 flex justify-end">
-            <span
-                class="typewriter-bubble inline-block max-w-full rounded-2xl bg-white/88 px-3 py-1 text-left text-3xl font-black leading-[1.35] tracking-normal text-emerald-950 shadow-[4px_4px_0_#86efac] ring-2 ring-white/90 sm:text-4xl">
-                <span>{{ visibleText }}</span><span class="typewriter-caret" aria-hidden="true" />
-            </span>
-        </div>
     </div>
 </template>
 
@@ -113,7 +108,7 @@ onBeforeUnmount(clearTypewriterTimer)
     width: 0.12em;
     height: 0.95em;
     margin-left: 0.08em;
-    background-color: #10b981;
+    background-color: #ff5b2e;
     vertical-align: -0.08em;
     animation: caret 0.8s step-end infinite;
 }

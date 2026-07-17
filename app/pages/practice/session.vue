@@ -133,24 +133,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <main class="min-h-screen bg-[#f5fbf4] px-5 py-6 text-emerald-950 sm:px-8 lg:px-10">
-        <section class="relative mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-7xl flex-col">
+    <main class="relative min-h-screen overflow-hidden bg-paper px-5 py-6 text-ink sm:px-8 lg:px-10">
+        <div class="pointer-events-none fixed inset-0 nb-dots" aria-hidden="true" />
+        <section class="relative z-10 mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-7xl flex-col">
             <header class="flex items-center justify-between gap-4">
                 <NuxtLink to="/practice"
-                    class="inline-flex size-12 items-center justify-center rounded-2xl border-2 border-emerald-950 bg-white text-emerald-950 shadow-[5px_5px_0_#86efac] transition-all duration-150 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[3px_3px_0_#86efac] active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0_#86efac]"
+                    class="nb-card nb-interactive inline-flex size-12 items-center justify-center text-ink"
                     aria-label="返回难度选择">
                     <IconBack class="size-5" />
                 </NuxtLink>
 
-                <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 text-right">
+                <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
                     <p
-                        class="max-w-[min(52vw,28rem)] truncate font-mono text-sm font-bold text-emerald-700/75 sm:text-base">
+                        class="max-w-[min(52vw,28rem)] truncate font-romaji text-sm font-bold text-ink-soft sm:text-base">
                         {{ currentPracticeLineTitle }}
                     </p>
-                    <span class="font-mono text-sm font-black" :class="selectedDifficultyDetail.classes">
+                    <span class="nb-sticker bg-butter font-zh-playful text-xs text-ink">
                         {{ selectedDifficultyDetail.label }}
                     </span>
-                    <span class="font-fredoka text-sm font-black text-emerald-700">
+                    <span class="font-fredoka text-sm font-black text-coral">
                         1 / 5
                     </span>
                 </div>
@@ -178,8 +179,8 @@ onBeforeUnmount(() => {
 
                 <!-- 待确认 IME 候选词 -->
                 <div class="relative mt-7 flex min-h-8 w-full justify-center">
-                    <p v-if="pendingInputText" class="text-sm font-medium tracking-normal text-[#2563eb]">
-                        待确认：<span class="border-b border-[#2563eb] px-1">{{ pendingInputText }}</span>
+                    <p v-if="pendingInputText" class="text-sm font-medium tracking-normal text-indigo">
+                        待确认：<span class="border-b-2 border-indigo px-1">{{ pendingInputText }}</span>
                     </p>
                     <input ref="inputReceiverRef" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
                         class="typing-input" aria-label="输入听到的日语" @input="syncPendingInputText"
@@ -190,7 +191,7 @@ onBeforeUnmount(() => {
                 <!-- 当前语音的中文译文 -->
                 <div class="mt-6 flex min-h-8 w-full items-center justify-center">
                     <p v-show="shouldShowTranslation"
-                        class="font-mono text-base font-bold text-emerald-700/75 sm:text-lg">
+                        class="font-zh-playful text-base font-bold text-ink-soft sm:text-lg">
                         {{ currentPracticeChineseText || '暂无中文译文' }}
                     </p>
                     <p v-show="!shouldShowTranslation" class="sr-only">

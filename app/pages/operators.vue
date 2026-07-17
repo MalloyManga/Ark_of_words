@@ -95,24 +95,25 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
 </script>
 
 <template>
-    <main class="min-h-screen overflow-hidden bg-[#f7fbf5] px-4 py-5 text-emerald-950 sm:px-6 lg:px-8">
-        <section class="mx-auto flex w-full max-w-7xl flex-col gap-5">
-            <header class="flex items-center justify-between gap-4 border-b border-emerald-950/15 pb-4">
+    <main class="relative min-h-screen overflow-hidden bg-paper px-4 py-5 text-ink sm:px-6 lg:px-8">
+        <div class="pointer-events-none fixed inset-0 nb-dots" aria-hidden="true" />
+        <section class="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-5">
+            <header class="flex items-center justify-between gap-4 border-b-2 border-ink pb-4">
                 <NuxtLink to="/"
-                    class="inline-flex size-12 items-center justify-center rounded-2xl border-2 border-emerald-950 bg-white shadow-[5px_5px_0_#86efac] transition-all duration-150 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[3px_3px_0_#86efac] active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0_#86efac] focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
+                    class="nb-card nb-interactive inline-flex size-12 items-center justify-center text-ink"
                     aria-label="返回首页">
                     <IconBack class="size-5" />
                 </NuxtLink>
 
-                <div class="inline-flex items-center gap-2 text-emerald-950" aria-live="polite">
+                <div class="nb-sticker bg-butter text-ink" aria-live="polite">
                     <div class="relative">
-                        <IconCart class="size-8" />
+                        <IconCart class="size-6" />
                         <span v-if="selectedVoiceLineCount > 0" :key="selectedVoiceLineCount"
-                            class="selection-bump font-fredoka absolute -right-2 -top-2 text-sm font-black leading-none text-emerald-950">
+                            class="selection-bump font-fredoka absolute -right-2 -top-2 text-sm font-black leading-none text-coral">
                             {{ selectedVoiceLineCount }}
                         </span>
                     </div>
-                    <span class="font-zh-playful text-sm font-bold text-emerald-900">已选</span>
+                    <span class="font-zh-playful text-sm font-bold">已选</span>
                 </div>
             </header>
 
@@ -121,7 +122,7 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                 <section class="min-w-0 self-start">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p class="font-fredoka text-xs font-black uppercase text-emerald-700">
+                            <p class="font-romaji text-xs font-black uppercase tracking-widest text-coral">
                                 custom practice
                             </p>
                             <h1 class="font-zh-playful mt-1 text-3xl font-black leading-tight sm:text-4xl">
@@ -133,7 +134,7 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                     <div class="mt-5 grid grid-cols-3 gap-x-2 gap-y-3 transition-all duration-300 sm:grid-cols-5 sm:gap-x-3 sm:gap-y-4 lg:grid-cols-6 xl:grid-cols-8"
                         :class="activeOperator ? '2xl:grid-cols-6' : '2xl:grid-cols-10'">
                         <button v-for="operator in mockOperators" :key="operator.id" type="button"
-                            class="relative aspect-289/594 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-emerald-700"
+                            class="relative aspect-289/594 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-coral"
                             :aria-pressed="activeOperatorId === operator.id" :aria-label="operator.displayName"
                             @click="toggleActiveOperator(operator.id)">
                             <span
@@ -158,35 +159,35 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                             </span>
 
                             <span v-if="activeOperatorId === operator.id"
-                                class="pointer-events-none absolute inset-0 z-40 border-2 border-emerald-950" />
+                                class="pointer-events-none absolute inset-0 z-40 border-2 border-coral" />
                         </button>
                     </div>
                 </section>
 
                 <Transition name="voice-panel">
                     <aside v-if="activeOperator"
-                        class="flex min-w-0 flex-col border border-slate-500/60 bg-[#f8fafc] lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start">
+                        class="flex min-w-0 flex-col overflow-hidden rounded-2xl border-2 border-ink bg-cream shadow-[5px_5px_0_var(--color-ink)] lg:sticky lg:top-5 lg:max-h-[calc(100vh-2.5rem)] lg:self-start">
                         <div
-                            class="grid shrink-0 grid-cols-[6.5rem_minmax(0,1fr)] border-b border-slate-500/60 bg-slate-100 text-sm font-bold text-slate-800">
-                            <span class="border-r border-slate-500/60 px-3 py-2">条目</span>
+                            class="grid shrink-0 grid-cols-[6.5rem_minmax(0,1fr)] border-b-2 border-ink bg-ink text-sm font-bold text-cream">
+                            <span class="border-r-2 border-cream/20 px-3 py-2">条目</span>
                             <span class="px-3 py-2">文本</span>
                         </div>
 
-                        <div class="divide-y divide-slate-500/60 lg:min-h-0 lg:overflow-y-auto">
+                        <div class="divide-y-2 divide-ink/10 lg:min-h-0 lg:overflow-y-auto">
                             <button v-for="voiceLine in activeOperator.voiceLines" :key="voiceLine.id" type="button"
-                                class="grid w-full grid-cols-[6.5rem_minmax(0,1fr)] text-left transition-colors duration-150 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-slate-900"
+                                class="grid w-full grid-cols-[6.5rem_minmax(0,1fr)] text-left transition-colors duration-150 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-coral"
                                 :class="isVoiceLineSelected(activeOperator.id, voiceLine.id)
-                                    ? 'bg-[#d7f8df] shadow-[inset_0_0_0_2px_#064e3b]'
-                                    : 'bg-white hover:bg-slate-50 active:bg-[#edf7ef]'"
+                                    ? 'bg-butter'
+                                    : 'bg-cream hover:bg-paper-dim'"
                                 :aria-pressed="isVoiceLineSelected(activeOperator.id, voiceLine.id)"
                                 @click="toggleVoiceLineSelection(activeOperator.id, voiceLine.id)">
                                 <span
-                                    class="font-zh-playful border-r border-slate-500/60 px-3 py-3 text-sm font-bold text-slate-900">
+                                    class="font-zh-playful border-r-2 border-ink/10 px-3 py-3 text-sm font-bold text-ink">
                                     {{ voiceLine.title }}
                                 </span>
-                                <span class="px-3 py-3 text-sm font-bold leading-6 text-slate-900">
+                                <span class="px-3 py-3 text-sm font-bold leading-6 text-ink">
                                     <span class="block">{{ voiceLine.japaneseText }}</span>
-                                    <span class="mt-1 block">{{ voiceLine.chineseText }}</span>
+                                    <span class="mt-1 block text-ink-soft">{{ voiceLine.chineseText }}</span>
                                 </span>
                             </button>
                         </div>
@@ -196,10 +197,10 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
 
             <footer class="flex justify-center pb-2">
                 <button type="button"
-                    class="font-zh-playful inline-flex h-15 w-full items-center justify-center rounded-sm border-2 px-10 text-lg font-black transition-all duration-150 sm:w-56"
+                    class="font-zh-playful inline-flex h-15 w-full items-center justify-center rounded-xl border-2 px-10 text-lg font-black transition-all duration-150 sm:w-56"
                     :class="selectedVoiceLineCount > 0
-                        ? 'cursor-pointer border-emerald-950 bg-[#33d17a] text-emerald-950 shadow-[3px_3px_0_#064e3b] hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-[#45df89] hover:shadow-[2px_2px_0_#064e3b] active:translate-x-1 active:translate-y-1 active:shadow-none'
-                        : 'cursor-not-allowed border-slate-400 bg-slate-100 text-slate-500 shadow-none'"
+                        ? 'nb-interactive cursor-pointer border-ink bg-coral text-cream shadow-[4px_4px_0_var(--color-ink)]'
+                        : 'cursor-not-allowed border-ink/30 bg-paper-dim text-ink-soft/50'"
                     :disabled="selectedVoiceLineCount === 0">
                     开始练习
                 </button>
