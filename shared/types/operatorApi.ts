@@ -9,6 +9,10 @@ export const supportedOperatorIds = [
 
 export type SupportedOperatorId = typeof supportedOperatorIds[number]
 
+export const isSupportedOperatorId = (value: string): value is SupportedOperatorId => {
+    return (supportedOperatorIds as readonly string[]).includes(value)
+}
+
 export interface OperatorCatalogItem {
     id: SupportedOperatorId
     displayName: string

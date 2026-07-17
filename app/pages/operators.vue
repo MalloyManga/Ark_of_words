@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { mockOperators } from '~/constants/mockOperators'
+import { isSupportedOperatorId } from '#shared/types/operatorApi'
+import type { SupportedOperatorId } from '#shared/types/operatorApi'
 
-// activeOperatorId 只控制右侧详情面板 当前原型保持单干员激活
-const activeOperatorId = ref<string>()
+const { operatorDisplayItems, loadOperatorVoices } = await useOperatorBrowserData()
+
+// activeOperatorId 只控制右侧详情面板 当前页面保持单干员激活
+const activeOperatorId = ref<SupportedOperatorId>()
 
 // 用干员 id 和台词 id 组成全局 key 切换干员后已选台词不丢失
 const selectedVoiceLineIds = ref<ReadonlySet<string>>(new Set<string>())
 
 const activeOperator = computed(() => {
-    return mockOperators.find((operator) => operator.id === activeOperatorId.value)
+    return operatorDisplayItems.value.find((operator) => operator.id === activeOperatorId.value)
 })
 
 const selectedVoiceLineCount = computed(() => selectedVoiceLineIds.value.size)
@@ -27,8 +30,18 @@ const isVoiceLineSelected = (operatorId: string, voiceLineId: string): boolean =
     return selectedVoiceLineIds.value.has(createVoiceLineSelectionId(operatorId, voiceLineId))
 }
 
-const toggleActiveOperator = (operatorId: string): void => {
-    activeOperatorId.value = activeOperatorId.value === operatorId ? undefined : operatorId
+const toggleActiveOperator = async (operatorId: string): Promise<void> => {
+    if (!isSupportedOperatorId(operatorId)) {
+        return
+    }
+
+    if (activeOperatorId.value === operatorId) {
+        activeOperatorId.value = undefined
+        return
+    }
+
+    activeOperatorId.value = operatorId
+    await loadOperatorVoices(operatorId)
 }
 
 const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void => {
@@ -63,7 +76,7 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
             <!-- 主体网格区：左侧干员选择，右侧台词选择 (Grid 布局宽度过渡) -->
             <div class="flex-1 grid gap-6 transition-[grid-template-columns] duration-500 ease-out min-h-0"
                 :class="operatorGridClasses">
-                <OperatorSelectionGrid :operators="mockOperators" :active-operator-id="activeOperatorId"
+                <OperatorSelectionGrid :operators="operatorDisplayItems" :active-operator-id="activeOperatorId"
                     :active-operator="Boolean(activeOperator)" @toggle-operator="toggleActiveOperator" />
                 <OperatorVoicePanel :active-operator="activeOperator"
                     :is-voice-line-selected="isVoiceLineSelected" @toggle-voice-line="toggleVoiceLineSelection" />
