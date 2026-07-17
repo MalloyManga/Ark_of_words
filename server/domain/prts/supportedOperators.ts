@@ -48,7 +48,7 @@ export const supportedOperators: readonly SupportedOperatorConfig[] = [
 ]
 
 const supportedOperatorById = new Map<SupportedOperatorId, SupportedOperatorConfig>(
-    supportedOperators.map((operator) => [operator.id, operator]),
+    supportedOperators.map((operator) => [operator.id, operator] as const),
 )
 
 export const isSupportedOperatorId = (value: string): value is SupportedOperatorId => {
