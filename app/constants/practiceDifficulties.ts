@@ -8,19 +8,19 @@ type StandardPracticeDifficulty = 'easy' | 'normal' | 'hard'
 export const practiceDifficultyDetails = {
     easy: {
         label: '简单',
-        classes: 'text-[#2563eb]',
+        classes: 'text-mint',
     },
     normal: {
         label: '中等',
-        classes: 'text-[#a16207]',
+        classes: 'text-butter',
     },
     hard: {
         label: '困难',
-        classes: 'text-[#dc2626]',
+        classes: 'text-coral',
     },
     custom: {
         label: '自由配置',
-        classes: 'text-[#047857]',
+        classes: 'text-indigo',
     },
 } as const satisfies Record<string, PracticeDifficultyDetail>
 
