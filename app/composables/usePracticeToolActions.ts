@@ -1,8 +1,9 @@
 import { practiceDisplayModes } from '~/constants/practiceDisplayModes'
 import type { PracticeToolActionId } from '~/constants/practiceToolActions'
+import type { PracticeAudioController } from '~/types/practiceAudio'
 
 interface PracticeToolActionsOptions {
-    practiceAudioRef: Readonly<Ref<HTMLAudioElement | null>>
+    practiceAudioRef: Readonly<Ref<PracticeAudioController | null>>
     activeDisplayModeIndex: Ref<number>
     isRomajiModeEnabled: Ref<boolean>
     isPracticeInfoModalOpen: Ref<boolean>
@@ -35,14 +36,18 @@ export const usePracticeToolActions = ({
     focusInputReceiver,
 }: PracticeToolActionsOptions): PracticeToolActions => {
     const playPracticeAudio = async () => {
-        const audioElement = practiceAudioRef.value
+        const audioController = practiceAudioRef.value
 
-        if (!audioElement) {
+        if (!audioController) {
             return
         }
 
-        audioElement.currentTime = 0
-        await audioElement.play()
+        try {
+            await audioController.playFromStart()
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '未知播放错误'
+            console.error(`[练习音频] 播放失败 ${errorMessage}`)
+        }
     }
 
     const cycleDisplayMode = () => {

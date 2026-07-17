@@ -3,11 +3,12 @@ import { isPracticeDifficulty, practiceDifficultyDetails } from '~/constants/pra
 import type { PracticeDifficulty } from '~/constants/practiceDifficulties'
 import { practiceDisplayModes } from '~/constants/practiceDisplayModes'
 import type { PracticeDisplayMode } from '~/constants/practiceDisplayModes'
+import type { PracticeAudioController } from '~/types/practiceAudio'
 import mockPracticeAudioUrl from '~/data/编入队伍.wav?url'
 
 const route = useRoute()
 
-const practiceAudioRef = useTemplateRef<HTMLAudioElement>('practiceAudioRef')
+const practiceAudioRef = useTemplateRef<PracticeAudioController>('practiceAudioRef')
 
 const activeDisplayModeIndex = ref(0)
 const isRomajiModeEnabled = ref(false)
@@ -84,6 +85,9 @@ const typingJudge = usePracticeTypingJudge({
         advanceToNextItem()
     },
 })
+const practiceAudioSourceUrl = computed(() => {
+    return selectedDifficulty.value === 'custom' ? currentPracticeAudioPath.value : mockPracticeAudioUrl
+})
 
 const {
     submittedText,
@@ -158,7 +162,7 @@ onBeforeUnmount(() => {
         <section
             class="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto cursor-text"
             @click="focusInputReceiver">
-            <audio ref="practiceAudioRef" :src="mockPracticeAudioUrl" preload="auto" class="hidden" />
+            <PracticeAudioPlayer ref="practiceAudioRef" :source-url="practiceAudioSourceUrl" />
 
             <!-- 主体原文展示 (你的组件) -->
             <div
