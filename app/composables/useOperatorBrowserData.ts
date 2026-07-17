@@ -7,8 +7,8 @@ import { createOperatorDisplayItems } from '~/utils/operatorDisplayAdapter'
  * 目录随页面获取 单个干员语音只在首次展开时按需请求
  * 相同干员在当前页面生命周期内不会重复请求
  */
-export const useOperatorBrowserData = async () => {
-    const { data: operatorCatalogResponse, error: operatorCatalogError } = await useFetch<OperatorCatalogResponse>(
+export const useOperatorBrowserData = () => {
+    const operatorCatalogRequest = useFetch<OperatorCatalogResponse>(
         '/api/operators',
         { key: 'supported-operator-catalog' },
     )
@@ -21,14 +21,14 @@ export const useOperatorBrowserData = async () => {
 
     const operatorDisplayItems = computed(() => {
         return createOperatorDisplayItems(
-            operatorCatalogResponse.value?.operators ?? [],
+            operatorCatalogRequest.data.value?.operators ?? [],
             operatorVoiceResponseMap.value,
         )
     })
 
     return {
         operatorDisplayItems,
-        operatorCatalogError,
+        operatorCatalogError: operatorCatalogRequest.error,
         operatorVoiceResponseMap,
         operatorVoiceErrorMap,
         loadOperatorVoices,

@@ -2,7 +2,7 @@
 import { isSupportedOperatorId } from '#shared/types/operatorApi'
 import type { SupportedOperatorId } from '#shared/types/operatorApi'
 
-const { operatorDisplayItems, loadOperatorVoices } = await useOperatorBrowserData()
+const { operatorDisplayItems, loadOperatorVoices } = useOperatorBrowserData()
 const { replaceSelectedVoiceLines } = useCustomPracticeSelection()
 
 // activeOperatorId 控制抽屉面板的开关
