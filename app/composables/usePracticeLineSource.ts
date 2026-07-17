@@ -29,6 +29,8 @@ export interface PracticeReadingUnit {
 export interface PracticeLineSource {
     currentPracticePool: ComputedRef<PracticePool | undefined>
     currentPracticePoolItem: ComputedRef<PracticePoolItem | undefined>
+    currentItemNumber: ComputedRef<number>
+    totalItemCount: ComputedRef<number>
     currentPracticeLine: ComputedRef<PrtsVoiceLine | undefined>
     currentPracticeOperatorName: ComputedRef<string>
     currentPracticeAudioPath: ComputedRef<string>
@@ -38,10 +40,10 @@ export interface PracticeLineSource {
     kanaHint: ComputedRef<string>
     practiceReadingUnits: readonly PracticeReadingUnit[]
     practiceInfoItems: ComputedRef<readonly PracticeInfoItem[]>
+    advanceToNextItem: () => void
 }
 
 const mockPracticeAudioFileName = '编入队伍.wav'
-const currentMockVoiceNumber = 17
 const mockPracticeReadingUnits: readonly PracticeReadingUnit[] = [
     { id: 'mock-reading-unit-1', sourceText: 'あたし', kanaText: 'あたし', romajiText: 'atashi' },
     { id: 'mock-reading-unit-2', sourceText: 'が', kanaText: 'が', romajiText: 'ga' },
@@ -69,11 +71,13 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     const currentPracticePool = computed(() => {
         return practicePools.find((practicePool) => practicePool.id === toValue(poolId))
     })
-    // 现阶段还没有 sessionQueue 优先按 PRTS 编号固定 mock 题目 保持题目来源稳定
-    const currentPracticePoolItem = computed(() => {
-        return currentPracticePool.value?.items.find((poolItem) => poolItem.voiceNumber === currentMockVoiceNumber)
-            ?? currentPracticePool.value?.items[0]
-        // 当前阶段先暂时使用一条语音
+    const {
+        currentPracticePoolItem,
+        currentItemNumber,
+        totalItemCount,
+        advanceToNextItem,
+    } = usePracticeSessionQueue({
+        practicePool: currentPracticePool,
     })
     const currentPracticeLine = computed(() => currentPracticePoolItem.value?.voiceLine)
     const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? wisadelVoiceData.operatorName)
@@ -100,6 +104,8 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     return {
         currentPracticePool,
         currentPracticePoolItem,
+        currentItemNumber,
+        totalItemCount,
         currentPracticeLine,
         currentPracticeOperatorName,
         currentPracticeAudioPath,
@@ -109,5 +115,6 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         kanaHint,
         practiceReadingUnits: mockPracticeReadingUnits,
         practiceInfoItems,
+        advanceToNextItem,
     }
 }
