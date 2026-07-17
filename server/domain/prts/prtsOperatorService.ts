@@ -22,9 +22,11 @@ const encodePathSegments = (path: string): string => {
 }
 
 const createAudioUrl = (audioBasePath: string, audioFileName: string): string => {
-    const playbackFileName = audioFileName.replace(/\.wav$/iu, '.mp3')
+    // PRTS 官方播放器会先将文件名转成小写 对象存储路径区分大小写
+    const normalizedAudioFileName = audioFileName.toLowerCase()
+    const playbackFileName = normalizedAudioFileName.replace(/\.wav$/u, '.mp3')
 
-    if (playbackFileName === audioFileName) {
+    if (playbackFileName === normalizedAudioFileName) {
         throw new Error(`PRTS 返回了不支持的音频文件名 ${audioFileName}`)
     }
 
