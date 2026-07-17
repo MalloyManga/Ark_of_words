@@ -5,6 +5,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['./app/assets/css/main.css'],
   nitro: {
+    externals: {
+      external: ['kuromoji'],
+    },
     storage: {
       cache: {
         driver: 'fs',
