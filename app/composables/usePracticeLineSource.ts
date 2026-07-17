@@ -1,8 +1,9 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
+import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
+import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 import { createPracticePoolsFromOperatorVoiceData } from '~/constants/practicePools'
 import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
-import type { PrtsVoiceLine } from '~/utils/prtsVoiceDataExtractor'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
 interface PracticeLineSourceOptions {

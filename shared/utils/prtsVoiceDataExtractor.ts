@@ -1,5 +1,5 @@
 /**
- * PRTS MediaWiki API 返回的 json
+ * PRTS MediaWiki API 返回的 JSON
  * 这里只声明解析器实际读取的字段
  */
 interface PrtsMediaWikiApiResponse {

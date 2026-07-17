@@ -3,6 +3,7 @@ import operatorFrameFront from '~/assets/imgs/front.png'
 import casterProfessionIcon from '~/assets/imgs/Caster.png'
 import mostimaPortrait from '~/assets/imgs/立绘_莫斯提马_1.png'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
+import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
 import type { OperatorDisplayItem, OperatorPortraitCrop } from '~/types/operator'
 
 export { operatorFrameBack, operatorFrameFront }

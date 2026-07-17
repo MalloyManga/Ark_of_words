@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'vue'
-import type { PrtsVoiceLine } from '~/utils/prtsVoiceDataExtractor'
+import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 
 export interface OperatorPortraitCrop extends CSSProperties {
     width: string

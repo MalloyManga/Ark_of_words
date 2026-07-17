@@ -1,6 +1,6 @@
 import { practiceDifficultyVoiceNumberMap } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
-import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '~/utils/prtsVoiceDataExtractor'
+import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 
 export interface PracticeOperatorIdentity {
     id: string
