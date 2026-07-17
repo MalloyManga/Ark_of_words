@@ -102,10 +102,7 @@ const difficultyOptions: readonly DifficultyOption[] = [
                     <!-- 右侧箭头 -->
                     <div
                         class="text-slate-300 dark:text-slate-600 group-hover:text-blue-500 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7">
-                            </path>
-                        </svg>
+                        <IconChevronRight class="w-6 h-6" :stroke-width="3" />
                     </div>
                 </NuxtLink>
             </div>

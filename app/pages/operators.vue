@@ -244,12 +244,8 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                         class="absolute inset-0 w-full h-full bg-linear-to-r from-blue-500 to-cyan-500 dark:from-cyan-300 dark:to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <span class="relative flex items-center gap-2 group-hover:text-white transition-colors">
                         开始练习
-                        <svg v-if="selectedVoiceLineCount > 0"
-                            class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7">
-                            </path>
-                        </svg>
+                        <IconChevronRight v-if="selectedVoiceLineCount > 0" alignment="right"
+                            class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                 </button>
             </footer>
