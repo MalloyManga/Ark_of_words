@@ -10,7 +10,7 @@ import { createOperatorDisplayItems } from '~/utils/operatorDisplayAdapter'
 export const useOperatorBrowserData = () => {
     const operatorCatalogRequest = useFetch<OperatorCatalogResponse>(
         '/api/operators',
-        { key: 'supported-operator-catalog' },
+        { key: 'supported-operator-catalog-with-placement' },
     )
     const {
         operatorVoiceResponseMap,
@@ -29,6 +29,7 @@ export const useOperatorBrowserData = () => {
     return {
         operatorDisplayItems,
         operatorCatalogError: operatorCatalogRequest.error,
+        operatorCatalogReady: operatorCatalogRequest.then(() => undefined),
         operatorVoiceResponseMap,
         operatorVoiceErrorMap,
         loadOperatorVoices,

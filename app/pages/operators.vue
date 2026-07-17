@@ -2,7 +2,7 @@
 import { isSupportedOperatorId } from '#shared/types/operatorApi'
 import type { SupportedOperatorId } from '#shared/types/operatorApi'
 
-const { operatorDisplayItems, loadOperatorVoices } = useOperatorBrowserData()
+const { operatorDisplayItems, operatorCatalogReady, loadOperatorVoices } = useOperatorBrowserData()
 const { replaceSelectedVoiceLines } = useCustomPracticeSelection()
 
 // activeOperatorId 控制抽屉面板的开关
@@ -67,6 +67,8 @@ const startCustomPractice = async (): Promise<void> => {
         query: { difficulty: 'custom' },
     })
 }
+
+await operatorCatalogReady
 </script>
 
 <template>
