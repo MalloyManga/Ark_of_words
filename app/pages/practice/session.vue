@@ -140,12 +140,27 @@ const handleWindowKeydown = (event: KeyboardEvent) => {
     }
 }
 
+let lastAutomaticallyPlayedAudioUrl = ''
+
 /**
  * 音频组件需要等当前渲染轮次完成后才能取得 template ref
  * 首题在页面挂载时播放 后续题目由音频 URL 变化触发且每题只尝试一次
  */
 const playCurrentPracticeAudioAfterRender = async (): Promise<void> => {
+    const audioUrl = practiceAudioSourceUrl.value
+
+    if (!audioUrl || audioUrl === lastAutomaticallyPlayedAudioUrl) {
+        return
+    }
+
+    // 在异步等待前占用当前 URL 避免 watcher 和 mounted 在同一轮重复播放
+    lastAutomaticallyPlayedAudioUrl = audioUrl
     await nextTick()
+
+    if (practiceAudioSourceUrl.value !== audioUrl) {
+        return
+    }
+
     await playPracticeAudio()
 }
 
