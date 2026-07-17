@@ -15,7 +15,7 @@ const homeStats: readonly HomeStat[] = [
     { value: '312', label: '收录干员', accentClass: 'text-mint' },
 ]
 
-// 跑马灯标语 重复两份保证无缝滚动
+// 顶部跑马灯标语 重复两份保证无缝滚动
 const marqueeWords = ['听写练习', '干员语音', '日语输入', '罗马字', '假名', '原型还原', 'PRTS']
 
 const heroCopy = {
@@ -44,7 +44,7 @@ const heroCopy = {
             </div>
         </div>
 
-        <!-- 顶栏 -->
+        <!-- 顶栏 只留品牌 导航入口已由下方 bento 卡承担 减少重复 -->
         <header class="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
             <div class="flex items-center gap-2.5">
                 <span
@@ -53,19 +53,12 @@ const heroCopy = {
                 </span>
                 <span class="font-fredoka text-lg font-black tracking-tight">Ark_of_words</span>
             </div>
-            <nav class="hidden items-center gap-6 sm:flex" aria-label="主导航">
-                <NuxtLink to="/practice"
-                    class="font-zh-playful text-sm font-bold text-ink-soft transition-colors hover:text-coral">
-                    开始练习
-                </NuxtLink>
-                <NuxtLink to="/operators"
-                    class="font-zh-playful text-sm font-bold text-ink-soft transition-colors hover:text-coral">
-                    干员浏览
-                </NuxtLink>
-            </nav>
+            <span class="font-romaji hidden text-xs font-black uppercase tracking-widest text-ink-soft sm:block">
+                日语听写练习终端
+            </span>
         </header>
 
-        <!-- 主体 bento 网格 -->
+        <!-- 主体 bento 网格 立绘卡纵向跨满右侧 消除底部空白 -->
         <main class="relative z-10 mx-auto max-w-6xl px-5 pb-16 sm:px-8">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
 
@@ -102,16 +95,16 @@ const heroCopy = {
                     </span>
                 </section>
 
-                <!-- 立绘卡 -->
+                <!-- 立绘卡 纵向跨 3 行填满右侧 -->
                 <section
-                    class="relative flex flex-col overflow-hidden rounded-[1.5rem] border-2 border-ink bg-gradient-to-b from-indigo/15 to-paper-dim shadow-[6px_6px_0_var(--color-ink)] lg:col-span-5 lg:row-span-2">
+                    class="relative flex flex-col overflow-hidden rounded-[1.5rem] border-2 border-ink bg-gradient-to-b from-indigo/20 via-paper to-paper-dim shadow-[6px_6px_0_var(--color-ink)] lg:col-span-5 lg:row-span-4">
                     <div class="flex items-center justify-between px-5 pt-4">
                         <span class="font-romaji text-xs font-black uppercase tracking-widest text-ink-soft">
                             featured op
                         </span>
                         <span class="nb-sticker bg-mint px-3 py-1 text-xs text-cream">6★ CASTER</span>
                     </div>
-                    <img class="mx-auto mt-auto block max-h-[34rem] w-auto object-contain"
+                    <img class="mx-auto mt-auto block w-auto max-w-full object-contain"
                         :src="wisadelImage" alt="Wiš'adel 立绘" draggable="false">
                     <span
                         class="font-fredoka pointer-events-none absolute bottom-4 left-5 select-none text-3xl font-black text-ink">
@@ -147,18 +140,18 @@ const heroCopy = {
                         →
                     </span>
                 </NuxtLink>
-            </div>
 
-            <!-- 语音预览 打字机 -->
-            <section class="nb-card mt-5 overflow-hidden p-6">
-                <div class="flex items-center gap-2">
-                    <span class="size-2 rounded-full bg-coral" />
-                    <span class="font-romaji text-xs font-black uppercase tracking-widest text-ink-soft">
-                        voice log preview
-                    </span>
-                </div>
-                <TypewriterText :lines="homeTypewriterLines" />
-            </section>
+                <!-- 语音预览 打字机 占左列底部 -->
+                <section class="nb-card overflow-hidden p-6 lg:col-span-7">
+                    <div class="flex items-center gap-2">
+                        <span class="size-2 rounded-full bg-coral" />
+                        <span class="font-romaji text-xs font-black uppercase tracking-widest text-ink-soft">
+                            voice log preview
+                        </span>
+                    </div>
+                    <TypewriterText :lines="homeTypewriterLines" />
+                </section>
+            </div>
         </main>
 
         <SiteFooter />
