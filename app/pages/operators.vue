@@ -64,7 +64,7 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
             <div class="flex-1 grid gap-6 transition-[grid-template-columns] duration-500 ease-out min-h-0"
                 :class="operatorGridClasses">
                 <OperatorSelectionGrid :operators="mockOperators" :active-operator-id="activeOperatorId"
-                    :has-active-operator="Boolean(activeOperator)" @toggle-operator="toggleActiveOperator" />
+                    :active-operator="Boolean(activeOperator)" @toggle-operator="toggleActiveOperator" />
                 <OperatorVoicePanel :active-operator="activeOperator"
                     :is-voice-line-selected="isVoiceLineSelected" @toggle-voice-line="toggleVoiceLineSelection" />
             </div>

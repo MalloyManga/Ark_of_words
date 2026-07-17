@@ -5,7 +5,7 @@ import type { OperatorDisplayItem } from '~/types/operator'
 interface SelectionGridProps {
     operators: readonly OperatorDisplayItem[]
     activeOperatorId?: string
-    hasActiveOperator: boolean
+    activeOperator: boolean
 }
 
 defineProps<SelectionGridProps>()
@@ -28,7 +28,7 @@ const emit = defineEmits<{
 
         <div
             class="grid grid-cols-3 gap-x-3 gap-y-4 sm:grid-cols-5 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-6 xl:grid-cols-8 transition-all duration-300"
-            :class="hasActiveOperator ? '2xl:grid-cols-6' : '2xl:grid-cols-10'">
+            :class="activeOperator ? '2xl:grid-cols-6' : '2xl:grid-cols-10'">
             <button v-for="operator in operators" :key="operator.id" type="button"
                 class="group relative aspect-289/594 focus-visible:outline-none transition-transform duration-300 hover:-translate-y-1"
                 :aria-pressed="activeOperatorId === operator.id" :aria-label="operator.displayName"
@@ -51,7 +51,7 @@ const emit = defineEmits<{
 
                 <span
                     class="pointer-events-none absolute bottom-[3%] right-[7%] z-30 text-right font-bold leading-none text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
-                    :class="hasActiveOperator ? 'text-[clamp(8px,0.8vw,14px)]' : 'text-[clamp(10px,1.2vw,16px)]'">
+                    :class="activeOperator ? 'text-[clamp(8px,0.8vw,14px)]' : 'text-[clamp(10px,1.2vw,16px)]'">
                     {{ operator.displayName }}
                 </span>
 
