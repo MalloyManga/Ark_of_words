@@ -1,11 +1,10 @@
-export const practiceJudgementStatuses = ['pending', 'correct', 'wrong'] as const
+export const practiceJudgementStatuses = ['pending', 'correct', 'wrong', 'extra'] as const
 
 export type PracticeJudgementStatus = typeof practiceJudgementStatuses[number]
 
-// 打字判定配色 pending 浅墨等待输入 correct 深墨已确认 wrong 珊瑚红醒目
-// 目标是让对错一眼可辨 保持输入节奏
 export const practiceJudgementTextClasses = {
-    pending: 'text-ink-soft/40',
-    correct: 'text-ink',
-    wrong: 'text-coral',
+    pending: 'text-slate-400 dark:text-slate-500',
+    correct: 'text-green-500 dark:text-green-400',
+    wrong: 'text-red-500 dark:text-red-400',
+    extra: 'text-amber-500 dark:text-amber-400',
 } as const satisfies Record<PracticeJudgementStatus, string>

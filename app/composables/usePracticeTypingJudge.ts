@@ -301,7 +301,7 @@ export const usePracticeTypingJudge = ({
             characters.push({
                 value: submittedCharacter,
                 submittedValue: submittedCharacter,
-                status: 'wrong',
+                status: 'extra',
                 isCursorBefore: false,
                 isExtraSubmittedCharacter: true,
             })
@@ -506,7 +506,9 @@ export const usePracticeTypingJudge = ({
 
         const nextSubmittedCharacters = Array.from(submittedText.value)
         nextSubmittedCharacters.pop()
-        submittedText.value = nextSubmittedCharacters.join('')
+        const nextSubmittedText = nextSubmittedCharacters.join('')
+        submittedText.value = nextSubmittedText
+        notifyPracticeCompletedIfCorrect(nextSubmittedText)
         nextTick(focusInputReceiver)
     }
 
