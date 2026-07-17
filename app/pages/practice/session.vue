@@ -41,10 +41,10 @@ const shouldShowOriginalText = computed(() => activeDisplayMode.value.shouldShow
 const shouldShowKanaHint = computed(() => activeDisplayMode.value.shouldShowKanaHint)
 const shouldShowTranslation = computed(() => activeDisplayMode.value.shouldShowTranslation)
 
-let submitDirectRomajiInput: (inputElement: HTMLInputElement) => void = () => {}
-let confirmPendingInput: () => void = () => {}
-let rollbackSubmittedCharacter: () => void = () => {}
-let warnRomajiInputMethod: () => void = () => {}
+let submitDirectRomajiInput: (inputElement: HTMLInputElement) => void = () => { }
+let confirmPendingInput: () => void = () => { }
+let rollbackSubmittedCharacter: () => void = () => { }
+let warnRomajiInputMethod: () => void = () => { }
 
 const {
     pendingInputText,
@@ -133,41 +133,54 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <main class="relative min-h-screen overflow-hidden bg-paper px-5 py-6 text-ink sm:px-8 lg:px-10">
-        <div class="pointer-events-none fixed inset-0 nb-dots" aria-hidden="true" />
-        <section class="relative z-10 mx-auto flex min-h-[calc(100vh-48px)] w-full max-w-7xl flex-col">
-            <header class="flex items-center justify-between gap-4">
-                <NuxtLink to="/practice"
-                    class="nb-card nb-interactive inline-flex size-12 items-center justify-center text-ink"
-                    aria-label="返回难度选择">
-                    <IconBack class="size-5" />
-                </NuxtLink>
+    <main
+        class="relative min-h-screen bg-slate-50 dark:bg-slate-950 px-4 sm:px-8 py-6 text-slate-800 dark:text-slate-100 flex flex-col overflow-hidden transition-colors duration-500">
 
-                <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
-                    <p
-                        class="max-w-[min(52vw,28rem)] truncate font-romaji text-sm font-bold text-ink-soft sm:text-base">
-                        {{ currentPracticeLineTitle }}
-                    </p>
-                    <span class="nb-sticker bg-butter font-zh-playful text-xs text-ink">
-                        {{ selectedDifficultyDetail.label }}
-                    </span>
-                    <span class="font-fredoka text-sm font-black text-coral">
-                        1 / 5
-                    </span>
+        <!-- 沉浸式微光背景 -->
+        <div class="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+            <div class="size-200 bg-blue-400/5 dark:bg-cyan-900/10 rounded-full blur-[120px]"></div>
+        </div>
+
+        <!-- 顶部 HUD 信息栏 -->
+        <header class="relative z-20 flex items-center justify-between gap-4 max-w-7xl mx-auto w-full mb-8">
+            <!-- 返回按钮 -->
+            <NuxtLink to="/practice"
+                class="group flex items-center justify-center w-12 h-12 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-cyan-400 hover:-translate-x-1 transition-all"
+                aria-label="返回难度选择">
+                <IconBack class="w-5 h-5" />
+            </NuxtLink>
+
+            <!-- 右侧状态面板 -->
+            <div
+                class="flex items-center gap-3 sm:gap-4 px-4 py-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm">
+                <p class="hidden sm:block max-w-50 truncate text-sm font-bold text-slate-500 dark:text-slate-400">
+                    {{ currentPracticeLineTitle }}
+                </p>
+
+                <div class="w-px h-4 bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
+
+                <span
+                    class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-cyan-900/50 text-blue-600 dark:text-cyan-400 text-xs font-black tracking-wide">
+                    {{ selectedDifficultyDetail.label }}
+                </span>
+
+                <div class="flex items-baseline gap-1 text-blue-500 dark:text-cyan-500 font-black">
+                    <span class="text-base">1</span>
+                    <span class="text-xs opacity-50">/ 5</span>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <div class="flex flex-1 flex-col items-center justify-center text-center" @click="focusInputReceiver">
-                <audio ref="practiceAudioRef" :src="mockPracticeAudioUrl" preload="auto" class="hidden" />
+        <!-- 核心打字练习区 -->
+        <section
+            class="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto cursor-text"
+            @click="focusInputReceiver">
+            <audio ref="practiceAudioRef" :src="mockPracticeAudioUrl" preload="auto" class="hidden" />
 
-                <p v-if="currentPracticeAudioPath" class="sr-only">
-                    {{ currentPracticeAudioPath }}
-                </p>
-                <p v-if="currentPracticeChineseText" class="sr-only">
-                    {{ currentPracticeChineseText }}
-                </p>
+            <!-- 主体原文展示 (你的组件) -->
+            <div
+                class="w-full flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/60 dark:border-slate-800/50 shadow-2xl shadow-blue-500/5 dark:shadow-cyan-900/10">
 
-                <!-- 主体原文展示已拆到纯展示组件 判定状态由 typing judge composable 提供 -->
                 <PracticeTextDisplay :is-romaji-mode-enabled="isRomajiModeEnabled"
                     :romaji-practice-unit-displays="romajiPracticeUnitDisplays"
                     :kana-practice-unit-displays="kanaPracticeUnitDisplays"
@@ -177,48 +190,55 @@ onBeforeUnmount(() => {
                     :get-display-character-text-class="getDisplayCharacterTextClass"
                     :get-display-character-value="getDisplayCharacterValue" />
 
-                <!-- 待确认 IME 候选词 -->
-                <div class="relative mt-7 flex min-h-8 w-full justify-center">
-                    <p v-if="pendingInputText" class="text-sm font-medium tracking-normal text-indigo">
-                        待确认：<span class="border-b-2 border-indigo px-1">{{ pendingInputText }}</span>
-                    </p>
+                <!-- 待确认 IME 候选词 HUD (更加科技感的样式) -->
+                <div class="relative mt-10 h-10 flex items-center justify-center w-full">
+                    <div v-if="pendingInputText"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 dark:bg-cyan-500/10 border border-blue-500/20 dark:border-cyan-500/20 animate-pulse">
+                        <span class="text-xs font-bold text-blue-400 dark:text-cyan-600">INPUTTING</span>
+                        <span
+                            class="text-lg font-black text-blue-600 dark:text-cyan-400 tracking-widest border-b-2 border-blue-500 dark:border-cyan-400 pb-0.5">
+                            {{ pendingInputText }}
+                        </span>
+                    </div>
+
+                    <!-- 隐藏的真实输入框 (不可见但接收焦点) -->
                     <input ref="inputReceiverRef" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
                         class="typing-input" aria-label="输入听到的日语" @input="syncPendingInputText"
                         @compositionstart="handleCompositionStart" @compositionupdate="handleCompositionUpdate"
                         @compositionend="handleCompositionEnd" @keydown="handleInputKeydown">
                 </div>
 
-                <!-- 当前语音的中文译文 -->
-                <div class="mt-6 flex min-h-8 w-full items-center justify-center">
+                <!-- 中文译文区域 -->
+                <div class="mt-6 flex h-8 items-center justify-center text-center">
                     <p v-show="shouldShowTranslation"
-                        class="font-zh-playful text-base font-bold text-ink-soft sm:text-lg">
-                        {{ currentPracticeChineseText || '暂无中文译文' }}
-                    </p>
-                    <p v-show="!shouldShowTranslation" class="sr-only">
-                        {{ currentPracticeChineseText || '暂无中文译文' }}
+                        class="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400 tracking-wide transition-opacity duration-300">
+                        {{ currentPracticeChineseText || '...' }}
                     </p>
                 </div>
+            </div>
 
-                <p class="sr-only">
-                    {{ activeDisplayMode.label }}
-                </p>
+            <!-- 工具栏 (居中悬浮在底部) -->
+            <div class="mt-8">
                 <PracticeToolBar @action-click="handlePracticeToolAction" />
             </div>
 
-            <PracticePoolModal :is-open="isPracticeInfoModalOpen" :practice-pool="currentPracticePool"
-                @close="closePracticeInfoModal" />
-            <PracticeRomajiInputMethodModal :is-open="isRomajiInputMethodModalOpen"
-                @close="closeRomajiInputMethodModal" @switch-to-kana-mode="handleSwitchToKanaMode" />
         </section>
+
+        <!-- Modals (保持原有逻辑) -->
+        <PracticePoolModal :is-open="isPracticeInfoModalOpen" :practice-pool="currentPracticePool"
+            @close="closePracticeInfoModal" />
+        <PracticeRomajiInputMethodModal :is-open="isRomajiInputMethodModalOpen" @close="closeRomajiInputMethodModal"
+            @switch-to-kana-mode="handleSwitchToKanaMode" />
     </main>
 </template>
 
 <style scoped>
+/* 隐藏真实输入框，但保证它能正常接收法文输入法候选词 */
 .typing-input {
     background: transparent;
     border: 0;
     color: transparent;
-    height: 1.4em;
+    height: 2em;
     bottom: 0;
     left: 50%;
     caret-color: transparent;

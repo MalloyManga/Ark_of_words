@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: Fredoka;
   src: url("@/assets/fonts/Fredoka-Variable.ttf") format("truetype");
@@ -28,18 +30,6 @@
   --font-fredoka: Fredoka, sans-serif;
   --font-zh-playful: ZCOOLKuaiLe, sans-serif;
   --font-romaji: RobotoMono, sans-serif;
-
-  /* freestyle 主题 暖纸底 + 高对比墨黑 + 电光橙珊瑚 + 靛蓝 薄荷点缀 */
-  --color-paper: #f3ede1;
-  --color-paper-dim: #e7dfce;
-  --color-ink: #171310;
-  --color-ink-soft: #4a4038;
-  --color-cream: #fbf7ee;
-  --color-coral: #ff5b2e;
-  --color-coral-deep: #e63f13;
-  --color-indigo: #4b3bff;
-  --color-mint: #12b886;
-  --color-butter: #ffc93c;
 }
 
 @layer base {
@@ -67,68 +57,6 @@
   }
 
   body {
-    background-color: var(--color-paper);
-    color: var(--color-ink);
-  }
-}
-
-@layer components {
-  /* 新粗野风卡片 粗墨边 + 硬阴影 无模糊 */
-  .nb-card {
-    background-color: var(--color-cream);
-    border: 2px solid var(--color-ink);
-    border-radius: 1.25rem;
-    box-shadow: 5px 5px 0 var(--color-ink);
-  }
-
-  /* 可点击卡片 hover 位移让阴影收拢 制造按下的实体感 */
-  .nb-interactive {
-    transition: transform 140ms ease, box-shadow 140ms ease;
-  }
-
-  .nb-interactive:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 3px 3px 0 var(--color-ink);
-  }
-
-  .nb-interactive:active {
-    transform: translate(5px, 5px);
-    box-shadow: 0 0 0 var(--color-ink);
-  }
-
-  /* 贴纸徽章 小圆角 粗边 */
-  .nb-sticker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    border: 2px solid var(--color-ink);
-    border-radius: 999px;
-    padding: 0.3rem 0.85rem;
-    font-weight: 900;
-    box-shadow: 2px 2px 0 var(--color-ink);
-  }
-
-  /* 点阵背景 暖纸上的墨点 */
-  .nb-dots {
-    background-image: radial-gradient(var(--color-ink) 1.2px, transparent 1.2px);
-    background-size: 22px 22px;
-    background-position: -11px -11px;
-    opacity: 0.06;
-  }
-
-  /* 跑马灯轨道 用于顶部标语滚动 */
-  .nb-marquee-track {
-    display: inline-flex;
-    white-space: nowrap;
-    animation: nb-marquee 22s linear infinite;
-  }
-
-  @keyframes nb-marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nb-marquee-track { animation: none; }
+    @apply bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-500;
   }
 }
