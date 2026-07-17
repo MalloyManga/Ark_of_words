@@ -1,4 +1,5 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
+import type { JapaneseReadingUnit } from '#shared/types/japaneseReading'
 import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
 import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 import { supportedOperatorIds } from '#shared/types/operatorApi'
@@ -21,15 +22,10 @@ export interface PracticeInfoItem {
     value: string
 }
 
-/**
- * 练习阅读单元是第三方分词和假名 罗马字转换库接入前的稳定接口
- */
-export interface PracticeReadingUnit {
-    id: string
-    sourceText: string
-    kanaText: string
-    romajiText: string
-}
+export type PracticeReadingUnit = Pick<
+    JapaneseReadingUnit,
+    'id' | 'sourceText' | 'kanaText' | 'romajiText'
+>
 
 export interface PracticeLineSource {
     currentPracticePool: ComputedRef<PracticePool | undefined>
@@ -43,7 +39,7 @@ export interface PracticeLineSource {
     targetPracticeText: ComputedRef<string>
     currentPracticeLineTitle: ComputedRef<string>
     kanaHint: ComputedRef<string>
-    practiceReadingUnits: readonly PracticeReadingUnit[]
+    practiceReadingUnits: ComputedRef<readonly PracticeReadingUnit[]>
     practiceInfoItems: ComputedRef<readonly PracticeInfoItem[]>
     advanceToNextItem: () => void
 }
@@ -62,6 +58,7 @@ const mockPracticeReadingUnits: readonly PracticeReadingUnit[] = [
     { id: 'mock-reading-unit-9', sourceText: 'を', kanaText: 'を', romajiText: 'wo' },
     { id: 'mock-reading-unit-10', sourceText: 'おごっておいて', kanaText: 'おごっておいて', romajiText: 'ogotteoite' },
 ]
+const mockPracticeSourceText = mockPracticeReadingUnits.map((readingUnit) => readingUnit.sourceText).join('')
 
 const createPlaceholderKanaHint = (text: string) => {
     // kana 生成规则还没有确定 这里先用等长占位符验证练习数据接线
@@ -113,6 +110,15 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     const targetPracticeText = computed(() => currentPracticeLine.value?.japaneseText ?? '')
     const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? '暂无练习题目')
     const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText.value))
+    const practiceReadingUnits = computed<readonly PracticeReadingUnit[]>(() => {
+        const currentReadingUnits = currentPracticePoolItem.value?.readingUnits
+
+        if (currentReadingUnits?.length) {
+            return currentReadingUnits
+        }
+
+        return targetPracticeText.value === mockPracticeSourceText ? mockPracticeReadingUnits : []
+    })
     const practiceInfoItems = computed<readonly PracticeInfoItem[]>(() => [
         { label: '干员', value: currentPracticeOperatorName.value || '未知干员' },
         { label: '标题', value: currentPracticeLineTitle.value || '未知语音' },
@@ -137,7 +143,7 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         targetPracticeText,
         currentPracticeLineTitle,
         kanaHint,
-        practiceReadingUnits: mockPracticeReadingUnits,
+        practiceReadingUnits,
         practiceInfoItems,
         advanceToNextItem,
     }

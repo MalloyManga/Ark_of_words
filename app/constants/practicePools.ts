@@ -1,6 +1,7 @@
 import { practiceDifficultyVoiceNumberMap } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
+import type { JapaneseReadingUnit } from '#shared/types/japaneseReading'
 import type {
     OperatorVoiceLineResponse,
     OperatorVoiceResponse,
@@ -19,6 +20,7 @@ export interface PracticePoolItem {
     voiceNumber: number
     voiceLine: PrtsVoiceLine
     audioUrl?: string
+    readingUnits?: readonly JapaneseReadingUnit[]
 }
 
 interface CustomPracticePoolSelection {
@@ -42,6 +44,7 @@ const createPracticePoolItemFromOperatorVoiceResponse = (
         voiceNumber: voiceLine.voiceNumber,
         voiceLine,
         audioUrl: voiceLine.audioUrl,
+        readingUnits: voiceLine.readingUnits,
     }
 }
 
