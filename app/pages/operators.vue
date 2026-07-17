@@ -3,6 +3,7 @@ import { isSupportedOperatorId } from '#shared/types/operatorApi'
 import type { SupportedOperatorId } from '#shared/types/operatorApi'
 
 const { operatorDisplayItems, loadOperatorVoices } = await useOperatorBrowserData()
+const { replaceSelectedVoiceLines } = useCustomPracticeSelection()
 
 // activeOperatorId 只控制右侧详情面板 当前页面保持单干员激活
 const activeOperatorId = ref<SupportedOperatorId>()
@@ -57,6 +58,18 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
 
     selectedVoiceLineIds.value = nextSelectedVoiceLineIds
 }
+
+const startCustomPractice = async (): Promise<void> => {
+    if (selectedVoiceLineIds.value.size === 0) {
+        return
+    }
+
+    replaceSelectedVoiceLines([...selectedVoiceLineIds.value])
+    await navigateTo({
+        path: '/practice/session',
+        query: { difficulty: 'custom' },
+    })
+}
 </script>
 
 <template>
@@ -82,7 +95,8 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
                     :is-voice-line-selected="isVoiceLineSelected" @toggle-voice-line="toggleVoiceLineSelection" />
             </div>
 
-            <OperatorPracticeFooter :selected-voice-line-count="selectedVoiceLineCount" />
+            <OperatorPracticeFooter :selected-voice-line-count="selectedVoiceLineCount"
+                @start-practice="startCustomPractice" />
         </section>
     </main>
 </template>

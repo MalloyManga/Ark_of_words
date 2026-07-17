@@ -4,6 +4,10 @@ interface PracticeFooterProps {
 }
 
 defineProps<PracticeFooterProps>()
+
+const emit = defineEmits<{
+    startPractice: []
+}>()
 </script>
 
 <template>
@@ -14,7 +18,7 @@ defineProps<PracticeFooterProps>()
             :class="selectedVoiceLineCount > 0
                 ? 'bg-slate-800 dark:bg-cyan-50 text-white dark:text-cyan-950 shadow-lg shadow-slate-800/20 dark:shadow-cyan-400/20 hover:-translate-y-1 hover:shadow-xl'
                 : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'"
-            :disabled="selectedVoiceLineCount === 0">
+            :disabled="selectedVoiceLineCount === 0" @click="emit('startPractice')">
             <div v-if="selectedVoiceLineCount > 0"
                 class="absolute inset-0 w-full h-full bg-linear-to-r from-blue-500 to-cyan-500 dark:from-cyan-300 dark:to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span class="relative flex items-center gap-2 group-hover:text-white transition-colors">
