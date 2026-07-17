@@ -26,7 +26,7 @@ export default defineCachedEventHandler(async (event) => {
         })
     }
 }, {
-    name: 'operator-voices',
+    name: 'operator-voices-with-readings',
     group: 'prts',
     getKey: (event) => getRouterParam(event, 'operatorId') ?? 'missing-operator',
     maxAge: OPERATOR_VOICE_CACHE_MAX_AGE_SECONDS,

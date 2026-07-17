@@ -7,6 +7,7 @@ import type {
 import { parsePrtsOperatorVoiceData } from '#shared/utils/prtsVoiceDataExtractor'
 import { fetchPrtsPortraitUrls, fetchPrtsVoicePageRawData } from './prtsMediaWikiClient'
 import { getSupportedOperator, supportedOperators } from './supportedOperators'
+import { createJapaneseReadingUnits } from '../japanese/japaneseReadingService'
 
 const PRTS_AUDIO_ORIGIN = 'https://torappu.prts.wiki'
 const PRTS_PAGE_ORIGIN = 'https://prts.wiki'
@@ -78,10 +79,13 @@ export const getPrtsOperatorVoices = async (
         throw new Error(`PRTS 页面标题与干员配置不一致 ${operator.displayName}`)
     }
 
-    const lines: readonly OperatorVoiceLineResponse[] = voiceData.lines.map((voiceLine) => ({
-        ...voiceLine,
-        audioUrl: createAudioUrl(voiceData.japaneseAudioBasePath, voiceLine.audioFileName),
-    }))
+    const lines: readonly OperatorVoiceLineResponse[] = await Promise.all(
+        voiceData.lines.map(async (voiceLine): Promise<OperatorVoiceLineResponse> => ({
+            ...voiceLine,
+            audioUrl: createAudioUrl(voiceData.japaneseAudioBasePath, voiceLine.audioFileName),
+            readingUnits: await createJapaneseReadingUnits(voiceLine.id, voiceLine.japaneseText),
+        })),
+    )
 
     return {
         id: operator.id,

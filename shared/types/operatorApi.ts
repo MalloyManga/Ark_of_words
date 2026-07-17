@@ -1,3 +1,5 @@
+import type { JapaneseReadingUnit } from './japaneseReading'
+
 export const supportedOperatorIds = [
     'kaltsit-sihengtuo',
     'ines',
@@ -31,6 +33,7 @@ export interface OperatorVoiceLineResponse {
     chineseText: string
     audioFileName: string
     audioUrl: string
+    readingUnits: readonly JapaneseReadingUnit[]
 }
 
 export interface OperatorVoiceResponse {
