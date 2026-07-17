@@ -26,9 +26,12 @@ const {
     currentPracticeChineseText,
     currentPracticeLineTitle,
     currentPracticePool,
+    currentItemNumber,
+    totalItemCount,
     targetPracticeText,
     kanaHint,
     practiceReadingUnits,
+    advanceToNextItem,
 } = usePracticeLineSource({
     poolId: selectedDifficulty,
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
@@ -45,6 +48,7 @@ let submitDirectRomajiInput: (inputElement: HTMLInputElement) => void = () => { 
 let confirmPendingInput: () => void = () => { }
 let rollbackSubmittedCharacter: () => void = () => { }
 let warnRomajiInputMethod: () => void = () => { }
+let resetTypingProgress: () => void = () => { }
 
 const {
     pendingInputText,
@@ -75,6 +79,10 @@ const typingJudge = usePracticeTypingJudge({
     onRomajiInputMethodWarning: () => {
         isRomajiInputMethodModalOpen.value = true
     },
+    onPracticeCompleted: () => {
+        resetTypingProgress()
+        advanceToNextItem()
+    },
 })
 
 const {
@@ -91,6 +99,7 @@ submitDirectRomajiInput = typingJudge.submitDirectRomajiInput
 confirmPendingInput = typingJudge.confirmPendingInput
 rollbackSubmittedCharacter = typingJudge.rollbackSubmittedCharacter
 warnRomajiInputMethod = typingJudge.warnRomajiInputMethod
+resetTypingProgress = typingJudge.resetTypingProgress
 
 const {
     closePracticeInfoModal,
@@ -142,7 +151,8 @@ onBeforeUnmount(() => {
         </div>
 
         <PracticeSessionHeader :current-practice-line-title="currentPracticeLineTitle"
-            :difficulty-label="selectedDifficultyDetail.label" />
+            :difficulty-label="selectedDifficultyDetail.label" :current-item-number="currentItemNumber"
+            :total-item-count="totalItemCount" />
 
         <!-- 核心打字练习区 -->
         <section

@@ -44,6 +44,7 @@ interface PracticeTypingJudgeOptions {
     clearInputReceiverValue: () => void
     focusInputReceiver: () => void
     onRomajiInputMethodWarning?: () => void
+    onPracticeCompleted?: () => void
 }
 
 const romajiAllowedInputPattern = /^[\x00-\x7F]*$/u
@@ -68,8 +69,16 @@ export const usePracticeTypingJudge = ({
     clearInputReceiverValue,
     focusInputReceiver,
     onRomajiInputMethodWarning,
+    onPracticeCompleted,
 }: PracticeTypingJudgeOptions) => {
     const submittedText = ref('')
+
+    const resetTypingProgress = () => {
+        submittedText.value = ''
+        pendingInputText.value = ''
+        clearInputReceiverValue()
+        nextTick(focusInputReceiver)
+    }
 
     // 罗马字显示目标由 reading units 派生
     // 这样第三方分词和转换库接入后只需要替换 PracticeReadingUnit 数据源
@@ -236,6 +245,14 @@ export const usePracticeTypingJudge = ({
         return normalizedSubmittedCharacters.every((character, characterIndex) => {
             return character === targetInputCharacters.value[characterIndex]
         })
+    }
+
+    const notifyPracticeCompletedIfCorrect = (text: string) => {
+        if (!isSubmittedTextCompleteAndCorrect(text)) {
+            return
+        }
+
+        onPracticeCompleted?.()
     }
 
     /**
@@ -447,9 +464,7 @@ export const usePracticeTypingJudge = ({
         const nextSubmittedText = `${submittedText.value}${acceptedInputValue}`
         submittedText.value = nextSubmittedText
 
-        if (isSubmittedTextCompleteAndCorrect(nextSubmittedText)) {
-            console.log('当前练习文本已完全正确')
-        }
+        notifyPracticeCompletedIfCorrect(nextSubmittedText)
     }
 
     /**
@@ -474,9 +489,7 @@ export const usePracticeTypingJudge = ({
         pendingInputText.value = ''
         clearInputReceiverValue()
 
-        if (isSubmittedTextCompleteAndCorrect(nextSubmittedText)) {
-            console.log('当前练习文本已完全正确')
-        }
+        notifyPracticeCompletedIfCorrect(nextSubmittedText)
 
         nextTick(focusInputReceiver)
     }
@@ -524,5 +537,6 @@ export const usePracticeTypingJudge = ({
         submitDirectRomajiInput,
         confirmPendingInput,
         rollbackSubmittedCharacter,
+        resetTypingProgress,
     }
 }
