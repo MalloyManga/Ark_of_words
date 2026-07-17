@@ -19,7 +19,7 @@ export const useOperatorBrowserData = async () => {
         '/api/operators',
         { key: 'supported-operator-catalog' },
     )
-    const operatorVoiceResponseMap = ref<OperatorVoiceResponseMap>({})
+    const operatorVoiceResponseMap = useState<OperatorVoiceResponseMap>('operator-voice-response-cache', () => ({}))
     const operatorVoiceErrorMap = ref<OperatorVoiceErrorMap>({})
     const pendingOperatorIds = ref<ReadonlySet<SupportedOperatorId>>(new Set<SupportedOperatorId>())
 
@@ -69,6 +69,7 @@ export const useOperatorBrowserData = async () => {
     return {
         operatorDisplayItems,
         operatorCatalogError,
+        operatorVoiceResponseMap: readonly(operatorVoiceResponseMap),
         operatorVoiceErrorMap: readonly(operatorVoiceErrorMap),
         loadOperatorVoices,
         isOperatorVoicePending,
