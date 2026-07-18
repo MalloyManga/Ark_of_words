@@ -1,125 +1,120 @@
 ﻿# Ark_of_words
 
-基于《明日方舟》干员语音的日语听写与打字练习 Web 应用。听写干员的经典语音，练习日语键盘输入，学习单词的原型与词性！
+**Ark_of_words** 是一个基于《明日方舟》（Arknights）干员语音的日语听写与打字练习 Web 应用。
 
-## ✨ 项目规划与特性
+本项目将游戏内的日语语音切分为短组练习，结合即时按键反馈与自然语言处理（NLP）技术，帮助日语学习者在沉浸式的环境中练习听写、熟悉日文键盘输入，并学习单词的词性与原形。
 
-- **🎧 听音打字练习**：听干员语音进行日语打字练习，智能判断正误（过滤标点符号，统一使用空格区分）。
-- **📊 难度分级**：
-  - **简单**：“编入队伍”到“作战中4”等偏短的作战语音。
-  - **困难**：“任命助理”到“交谈”等多句组合的日常长语音。
-- **📚 智能单词解析**：利用自然语言处理（NLP）解析句中的单词，提供原形还原（如 `見て` -> `見る`）并辅助日语学习。
-- **🖼️ 沉浸式图文体验**：干员精美立绘展示。
+## ✨ 核心特性
 
-## 🧑🏻‍💻 开发路线 (Roadmap)
+- **🎧 听音打字与实时校验**
+  - 提供原声语音播放，支持用户进行日语听写。
+  - 逐字符级的输入判定：精确区分并高亮显示正确（绿）、错误（红）、多余（黄）和待输入（灰）状态。
+  - 自动过滤标点符号，统一使用空格进行断句，降低非语言性输入干扰。
+- **⌨️ 智能多模输入支持**
+  - **IME 模式**：支持标准的假名 / 汉字日文输入法。
+  - **罗马字模式**：支持直接在页面输入罗马字序列，系统自动映射。
+  - 自动检测异常输入行为，并提供平滑的模式切换提示。
+- **📚 NLP 智能单词解析**
+  - 结合 `Kuromoji.js` 与 `WanaKana`，在服务端完成形态素解析。
+  - 自动将句中单词还原为字典原形（如 `見て` -> `見る`）并标注词性，辅助语法学习。
+- **📊 动态难度与自定义题库**
+  - **标准模式**：内置简单（短指令）、中等（日常对话）、困难（长篇交谈）三种难度，题库自动随机洗牌并按 5 题一组切分。
+  - **自由配置**：支持从干员目录中自由筛选、组合特定的台词，生成专属练习池，并持久化保存在本地。
+- **⚡ 高性能与低成本架构**
+  - 基于 Nitro 的服务端缓存（Cache & SWR）策略，长期缓存第三方 Wiki 数据与 NLP 解析结果，极大降低外部 API 依赖与解析开销。
 
-### 阶段 1：UI 原型与前端体验
-- [x] 搭建 Nuxt 4 基础模板并配置 Tailwind CSS。
-- [x] 确定 UI 设计基调：偏学习工具而不是宣传页，优先保证练习流程清晰、信息密度适中、移动端可用。
-- [x] 建立统一图标组件，避免用 emoji 充当交互图标。
-- [x] 开发首页：看板干员展示、练习入口、浏览入口、当前进度区域。
-- [x] 开发难度选择页与练习会话页，跑通从首页开始练习的页面流转。
-- [x] 开发干员浏览 / 自由配置页 UI，先使用本地 mock 数据展示干员与语音条目。
-- [x] 封装基础练习界面：台词显示、输入区、工具栏、池信息弹窗、显示模式弹窗与罗马字输入法提示弹窗。
-- [x] 实现假名 / IME 输入模式与罗马字直接输入模式，包含逐字符判定、光标推进、错误状态、额外输入处理与完成后切换题目。
-- [x] 建立本地 mock 数据结构，并加入 PRTS 原始 JSON 解析工具用于后续接入真实数据。
-- [x] 建立响应式布局，覆盖手机、平板和桌面常用视口。
+## 🛠 技术栈
 
-#### 阶段 1 收尾与待办
-- [x] 封装无视觉 HTML5 音频控制组件，并接入当前真实 PRTS 音频地址。
-- [x] 自由配置页所选语音已能生成真实练习池并进入练习会话。
-- [x] 难度映射已按语音标题接入六位 MVP 干员：简单 90 题 中等 36 题 困难 102 题。
-- [x] 使用 Kuromoji 与 WanaKana 在服务端生成真实假名 罗马字 原形和词性，并随干员语音长期缓存。
-- [x] 练习数据加载期间显示干员加载进度，避免冷缓存时页面看起来无响应。
-- [x] 每个难度完整池随机洗牌后按五题分组，每组完成后支持原组重练、进入下一组或返回自由配置。
-- [x] 使用浏览器 LocalStorage 保存主题偏好和自由配置选择。
+- **核心框架**：[Nuxt 4](https://nuxt.com/) / [Vue 3](https://vuejs.org/)
+- **开发语言**：TypeScript
+- **UI & 样式**：[Tailwind CSS v4](https://tailwindcss.com/)
+- **服务端 & API**：Nitro (Nuxt Server API)
+- **自然语言处理**：[Kuromoji.js](https://github.com/takuyaa/kuromoji.js) / [WanaKana](https://wanakana.com/)
+- **部署运维**：Docker Compose / Caddy
 
-### 阶段 2：按需数据获取机制 (Nuxt Server API)
-- [x] 验证 PRTS Wiki 的 MediaWiki API (`api.php`) 能获取干员“语音记录”原始数据。
-- [x] 编写 PRTS 原始 JSON 解析 / 提取工具，能从 mock 数据中整理干员语音文本与音频文件信息。
-- [x] 开发 `server/api/operators` 与 `server/api/operators/:operatorId/voices` 按需获取接口，并使用受控干员白名单校验请求参数。
-- [x] 使用 `defineCachedEventHandler` / Nitro Cache 做 30 天缓存与 90 天 SWR，并将缓存持久化到服务器磁盘。
-- [x] 使用 Nitro 单进程 pending 请求合并，避免同一个干员在冷缓存时重复请求 PRTS。
-- [ ] 如果 MediaWiki API 无法覆盖必要内容，再评估 `linkedom` 等轻量 HTML 解析方案；不优先使用 Puppeteer 这类重型浏览器爬虫。
-- [x] 处理接口异常、10 秒超时、SWR 旧缓存回退和基础访问礼仪（明确 User-Agent、按需请求、不批量抓取）。
+## 📁 项目结构
 
-### 阶段 3：音频控制与核心打字逻辑
-- [ ] 音频控制器已支持播放 暂停和进度跳转，仍待设计可视化暂停与进度操作 UI。
-- [x] 音频按需加载，只绑定当前题目并使用 `preload="none"`，不预加载整个语音池。
-- [x] 编写文本标准化函数，去除原始日文台词中的常见标点，统一转换为停顿空格。
-- [x] 开发核心打字判定逻辑，监听真实键入事件并即时判定输入内容。
-- [x] 添加正确 / 错误状态展示、错误标红与完成后的下一题触发。
-- [x] 设计并接入简单 / 中等 / 困难 / 自由配置的练习池入口。
-- [x] 基于真实多干员语音数据完善难度区间与练习池生成规则。
-
-### 阶段 4：学习增强与体验打磨
-- [ ] 接入 `kuromoji.js` 或类似工具，显示日语单词原形与词性。
-- [ ] 完善无障碍体验：键盘操作、焦点状态、动效降级、颜色对比度。
-
-## 🔮 未来展望 (Future Outlook)
-
-- [ ] **智能形态素解析**：引入 `kuromoji.js` 或类似 NLP 工具，将句子拆解为单词并显示原型（如“見て” -> “見る”）。
-- [ ] **日文歌曲补完企划**：扩展题目来源，不仅仅是干员语音，加入热门日文歌曲打字模式。
-- [ ] **开源贡献指南**：为其他有兴趣加入的同好完善 Contributing 指南。
-
-## 🧭 数据获取与成本策略
-
-- **低成本目标**：前端静态资源走免费托管额度，数据获取走 Serverless API；个人项目和小流量阶段以 0 成本运行为目标，但不承诺无限免费。
-- **缓存优先**：干员语音数据变化频率低，接口应使用长 TTL 缓存与 SWR。冷缓存只请求 PRTS 一次，后续用户优先读取缓存。
-- **缓存边界**：`defineCachedEventHandler` 是首选工具，但不同部署平台的缓存持久性不同；如默认内存缓存不稳定，再评估平台 KV、NuxtHub Cache、Upstash Redis 等免费额度内方案。
-- **访问礼仪**：设置清晰的 User-Agent，包含项目名、用途和仓库地址；设置请求超时；遇到 `429`、`403`、`5xx` 时退避，不连续重试。
-- **范围控制**：不做全站扫描，不预抓取白名单外数据；标准难度只顺序加载六位 MVP 干员，自由配置只请求用户展开的干员；API 参数必须白名单校验，避免变成开放代理。
-- **音频带宽**：不通过自己的 Server API 中转音频文件，也不预加载全部音频；只在用户播放当前题目时加载对应音频，尽量减少对 PRTS 的带宽压力。
-
-## 🛠️ 技术栈选择
-
-- **前端框架**：[Nuxt.js](https://nuxt.com/) / Vue 3
-- **样式方案**：[Tailwind CSS](https://tailwindcss.com/)
-- **文本数据获取**：使用 Nuxt Server API 按需获取 PRTS Wiki 数据；优先解析 MediaWiki API 返回的 wikitext，必要时再使用 `linkedom` 等轻量 HTML 解析方案。
-- **缓存策略**：使用 Nitro Cache / `defineCachedEventHandler`，配合长 TTL、SWR 和失败回退，降低函数调用和 PRTS 请求量。
-- **运行成本策略**：雨云单机使用长期 Node 进程复用 Kuromoji 词典，PRTS 文本和读音结果写入持久化 Nitro 缓存；避免长期爬虫和无边界音频中转。
-- **日语形态素解析**：Kuromoji 在 Nitro 服务端懒加载词典，WanaKana 生成假名与罗马字，结果随语音接口缓存。
-- **部署方案**：雨云 Linux 云服务器运行 Docker Compose，Nuxt node-server 提供页面与 API，Caddy 负责反向代理和 HTTPS，named volume 持久化 Nitro 缓存。
-
-## 📖 学习文档
-
-- [`Operator_Admin_Workflow.md`](./docs/Operator_Admin_Workflow.md)：本地可视化调整干员立绘并安全发布到雨云的完整流程。
-- [`Security_And_Concurrency_For_Beginners.md`](./docs/Security_And_Concurrency_For_Beginners.md)：面向建站初学者的攻击方式、防护层次、缓存和高并发说明。
-- [`Accessibility_For_Beginners.md`](./docs/Accessibility_For_Beginners.md)：键盘、焦点、屏幕阅读器、动效降级和无障碍验收指南。
-
-## 🚀 快速开始
-
-### 1. 克隆项目环境
-```bash
-git clone git@github.com:MalloyManga/Ark_of_words.git
-cd Ark_of_words
+```text
+Ark_of_words/
+├─ app/
+│  ├─ pages/          # 页面路由视图
+│  ├─ components/     # UI 视图组件与交互模块
+│  ├─ composables/    # 核心业务逻辑 (打字判定、状态机、音频控制)
+│  ├─ constants/      # 全局常量配置 (难度、模式、静态数据)
+│  └─ types/          # 前端展示所需的 TypeScript 类型
+├─ shared/
+│  ├─ types/          # 前后端共享类型定义
+│  └─ utils/          # 跨端共享的数据转换与校验工具
+├─ server/
+│  ├─ api/            # Nitro Server API 接口
+│  └─ domain/         # PRTS 数据抓取、清洗与 NLP 处理逻辑
 ```
 
-### 2. 安装依赖包
+## 🚀 本地开发指南
+
+### 环境要求
+- Node.js 22+
+- npm (或 pnpm / yarn)
+
+### 快速启动
+
+1. **克隆项目**
+   ```bash
+   git clone git@github.com:MalloyManga/Ark_of_words.git
+   cd Ark_of_words
+   ```
+
+2. **安装依赖**
+   ```bash
+   npm install
+   ```
+
+3. **启动开发服务器**
+   ```bash
+   npm run dev
+   ```
+   > 启动后，在浏览器中访问 `http://localhost:3000` 即可预览项目。
+
+### 可用命令
+
+| 命令 | 说明 |
+|---|---|
+| `npm run dev` | 启动本地开发服务器 |
+| `npm run build` | 构建生产版本 (Node Server) |
+| `npm run preview` | 在本地预览生产构建产物 |
+| `npx nuxi typecheck` | 运行 TypeScript 类型检查 |
+
+> **⚠️ 注意**：本项目依赖 Nuxt Server API 进行数据获取和 NLP 解析，**不支持纯静态导出 (`generate`)**，生产环境需部署为 Node.js 服务。
+
+## 🔌 Server API 接口参考
+
+前端所有的外部数据请求均通过内置的 Nitro API 代理，以解决跨域问题并提供数据缓存：
+
+| HTTP 方法 | 路径 | 说明 |
+|---|---|---|
+| `GET` | `/api/health` | 服务健康检查 |
+| `GET` | `/api/operators` | 获取支持的干员目录列表 |
+| `GET` | `/api/operators/:operatorId/voices` | 获取指定干员的语音台词与 NLP 解析数据 |
+
+## 📦 部署 (Deployment)
+
+项目根目录包含完整的 `Dockerfile` 与 `docker-compose.yml` 配置，推荐使用 Docker 进行容器化部署。
+
 ```bash
-npm install
-# 或者使用 pnpm install / yarn install
+docker compose build
+docker compose up -d
 ```
 
-### 3. 启动开发服务器
-```bash
-npm run dev
-```
-启动后在浏览器中访问 `http://localhost:3000` 即可查看项目页面。
+## 🤝 参与贡献
 
-### 4. 构建与部署
+欢迎提交 Issue 报告 Bug 或提出功能建议。
+如需提交 Pull Request，请确保：
+1. 改动范围清晰，避免一个 PR 包含过多无关修改。
+2. 运行 `npx nuxi typecheck` 确保 TypeScript 类型校验通过。
+3. 遵循现有的代码风格与组件结构。
 
-如果只预览前端静态页面，可以运行：
-```bash
-npm run generate
-```
+## ⚖️ 许可与声明
 
-雨云 Docker Compose 的完整准备与操作步骤见 [`RAINYUN_DEPLOYMENT.md`](./RAINYUN_DEPLOYMENT.md)。
-
-## 📄 许可与声明
-
-本项目源码部分采用 MIT License 开源。
-
-项目中涉及的《明日方舟》相关文本、音频、图片、角色名称、动画等素材**均不包含在 MIT License 授权范围内**，其版权归上海鹰角网络科技有限公司（Hypergryph）及相关权利方所有。
-
-本项目仅用于非商业学习交流与功能原型展示，禁止用于盈利用途，不得视为本项目对相关素材进行了再授权。
+- **代码授权**：本项目的前端 UI 与业务逻辑源码采用 [MIT License](./LICENSE) 开源。
+- **资产声明**：项目中涉及的《明日方舟》（Arknights）相关文本、音频、图片、角色名称等游戏资产，**均不包含在 MIT 协议授权范围内**，其著作权及相关知识产权归 **上海鹰角网络科技有限公司（Hypergryph）** 所有。
+- **免责条款**：本项目仅供开发者与日语爱好者进行非商业性质的学习、交流与技术验证使用，严禁用于任何形式的商业盈利。本项目的开源不应被视为对游戏素材的二次授权。
