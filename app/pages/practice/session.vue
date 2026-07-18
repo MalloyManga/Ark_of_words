@@ -22,7 +22,27 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
     const difficultyValue = Array.isArray(difficultyQuery) ? difficultyQuery[0] : difficultyQuery
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
-const { loadOperatorVoiceSet } = useOperatorVoiceData()
+const {
+    operatorVoiceResponseMap,
+    loadOperatorVoiceSet,
+} = useOperatorVoiceData()
+const { selectedVoiceLines } = useCustomPracticeSelection()
+
+const requiredOperatorIds = computed(() => {
+    if (selectedDifficulty.value !== 'custom') {
+        return supportedOperatorIds
+    }
+
+    return [...new Set(selectedVoiceLines.value.map((selection) => selection.operatorId))]
+})
+const loadedOperatorCount = computed(() => {
+    return requiredOperatorIds.value.filter((operatorId) => {
+        return operatorVoiceResponseMap.value[operatorId] !== undefined
+    }).length
+})
+const isPracticeDataLoading = ref(
+    loadedOperatorCount.value < requiredOperatorIds.value.length,
+)
 
 const selectedDifficultyDetail = computed(() => practiceDifficultyDetails[selectedDifficulty.value])
 const {
@@ -152,7 +172,7 @@ let lastAutomaticallyPlayedAudioUrl = ''
 const playCurrentPracticeAudioAfterRender = async (): Promise<void> => {
     const audioUrl = practiceAudioSourceUrl.value
 
-    if (!audioUrl || audioUrl === lastAutomaticallyPlayedAudioUrl) {
+    if (isPracticeDataLoading.value || !audioUrl || audioUrl === lastAutomaticallyPlayedAudioUrl) {
         return
     }
 
@@ -192,6 +212,22 @@ const restartCompletedPractice = async (): Promise<void> => {
     await startPracticeCycle(restartPracticeCycle)
 }
 
+/**
+ * 标准练习顺序请求六位干员 自由配置只补齐用户实际选中的干员
+ * 加载结束后再播放首题 避免缓存准备期间误播 mock 音频
+ */
+const loadPracticeData = async (): Promise<void> => {
+    isPracticeDataLoading.value = loadedOperatorCount.value < requiredOperatorIds.value.length
+
+    if (isPracticeDataLoading.value) {
+        await loadOperatorVoiceSet(requiredOperatorIds.value)
+    }
+
+    isPracticeDataLoading.value = false
+    await nextTick()
+    void playCurrentPracticeAudioAfterRender()
+}
+
 watch(practiceAudioSourceUrl, (nextAudioUrl, previousAudioUrl) => {
     if (!nextAudioUrl || nextAudioUrl === previousAudioUrl) {
         return
@@ -202,16 +238,13 @@ watch(practiceAudioSourceUrl, (nextAudioUrl, previousAudioUrl) => {
 
 onMounted(() => {
     window.addEventListener('keydown', handleWindowKeydown)
-    void playCurrentPracticeAudioAfterRender()
+    void loadPracticeData()
 })
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleWindowKeydown)
 })
 
-if (selectedDifficulty.value !== 'custom') {
-    await loadOperatorVoiceSet(supportedOperatorIds)
-}
 </script>
 
 <template>
@@ -237,7 +270,10 @@ if (selectedDifficulty.value !== 'custom') {
             <div
                 class="w-full flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/60 dark:border-slate-800/50 shadow-2xl shadow-blue-500/5 dark:shadow-cyan-900/10">
 
-                <PracticeCompletionPanel v-if="isPracticeCycleCompleted" :completed-item-count="totalItemCount"
+                <PracticeDataLoadingPanel v-if="isPracticeDataLoading" :loaded-operator-count="loadedOperatorCount"
+                    :required-operator-count="requiredOperatorIds.length" />
+
+                <PracticeCompletionPanel v-else-if="isPracticeCycleCompleted" :completed-item-count="totalItemCount"
                     :is-custom-practice="selectedDifficulty === 'custom'" @choose-next-practice="chooseNextPractice"
                     @restart-practice="restartCompletedPractice" />
 
