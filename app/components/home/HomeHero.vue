@@ -26,7 +26,7 @@ import wisadelImage from '../../assets/imgs/Wiš\'adel.png'
 
             <p
                 class="text-base sm:text-lg text-slate-500 dark:text-slate-400 leading-relaxed max-w-lg font-medium transition-colors">
-                告别冷冰冰的语言试卷。在这里，每一次敲击键盘，都是与喜爱干员的一次灵魂共鸣。结合自然语言解析与K歌级高亮，让你的日语学习变成一场轻快的游戏。
+                告别冷冰冰的语言试卷。在这里，每一次敲击键盘，都是与喜爱干员的一次灵魂共鸣。结合自然语言解析与K歌级高亮，让你的日语学习变成一场轻快的游戏。（把这一条润色一下塞简介里 不要复制粘贴）
             </p>
 
             <div class="flex flex-wrap items-center gap-4 mt-4">
