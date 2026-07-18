@@ -35,7 +35,10 @@ const {
     targetPracticeText,
     kanaHint,
     practiceReadingUnits,
+    isPracticeCycleCompleted,
     advanceToNextItem,
+    restartPracticeCycle,
+    shufflePracticeCycle,
 } = usePracticeLineSource({
     poolId: selectedDifficulty,
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
@@ -164,6 +167,31 @@ const playCurrentPracticeAudioAfterRender = async (): Promise<void> => {
     await playPracticeAudio()
 }
 
+/**
+ * 新一轮开始前清空输入和自动播放标记
+ * 单题练习重新开始时音频 URL 不变 因此需要允许同一地址再次自动播放
+ */
+const startPracticeCycle = async (startCycle: () => void): Promise<void> => {
+    resetTypingProgress()
+    lastAutomaticallyPlayedAudioUrl = ''
+    startCycle()
+    await nextTick()
+    void playCurrentPracticeAudioAfterRender()
+}
+
+const chooseNextPractice = async (): Promise<void> => {
+    if (selectedDifficulty.value === 'custom') {
+        await navigateTo('/operators')
+        return
+    }
+
+    await startPracticeCycle(shufflePracticeCycle)
+}
+
+const restartCompletedPractice = async (): Promise<void> => {
+    await startPracticeCycle(restartPracticeCycle)
+}
+
 watch(practiceAudioSourceUrl, (nextAudioUrl, previousAudioUrl) => {
     if (!nextAudioUrl || nextAudioUrl === previousAudioUrl) {
         return
@@ -209,6 +237,11 @@ if (selectedDifficulty.value !== 'custom') {
             <div
                 class="w-full flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/60 dark:border-slate-800/50 shadow-2xl shadow-blue-500/5 dark:shadow-cyan-900/10">
 
+                <PracticeCompletionPanel v-if="isPracticeCycleCompleted" :completed-item-count="totalItemCount"
+                    :is-custom-practice="selectedDifficulty === 'custom'" @choose-next-practice="chooseNextPractice"
+                    @restart-practice="restartCompletedPractice" />
+
+                <template v-else>
                 <PracticeTextDisplay :is-romaji-mode-enabled="isRomajiModeEnabled"
                     :romaji-practice-unit-displays="romajiPracticeUnitDisplays"
                     :kana-practice-unit-displays="kanaPracticeUnitDisplays"
@@ -234,6 +267,7 @@ if (selectedDifficulty.value !== 'custom') {
                     <PracticeTranslationText :text="currentPracticeChineseText"
                         :is-visible="shouldShowTranslation" />
                 </div>
+                </template>
             </div>
 
             <!-- 工具栏 (居中悬浮在底部) -->

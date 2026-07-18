@@ -41,7 +41,10 @@ export interface PracticeLineSource {
     kanaHint: ComputedRef<string>
     practiceReadingUnits: ComputedRef<readonly PracticeReadingUnit[]>
     practiceInfoItems: ComputedRef<readonly PracticeInfoItem[]>
+    isPracticeCycleCompleted: Readonly<Ref<boolean>>
     advanceToNextItem: () => void
+    restartPracticeCycle: () => void
+    shufflePracticeCycle: () => void
 }
 
 const mockPracticeAudioFileName = '编入队伍.wav'
@@ -99,7 +102,10 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         currentPracticePoolItem,
         currentItemNumber,
         totalItemCount,
+        isPracticeCycleCompleted,
         advanceToNextItem,
+        restartPracticeCycle,
+        shufflePracticeCycle,
     } = usePracticeSessionQueue({
         practicePool: currentPracticePool,
     })
@@ -145,6 +151,9 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         kanaHint,
         practiceReadingUnits,
         practiceInfoItems,
+        isPracticeCycleCompleted,
         advanceToNextItem,
+        restartPracticeCycle,
+        shufflePracticeCycle,
     }
 }
