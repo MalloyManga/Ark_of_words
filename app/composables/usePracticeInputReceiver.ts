@@ -22,7 +22,7 @@ export const usePracticeInputReceiver = ({
     const pendingInputText = ref('') // 正在 IME 候选中 还没提交的文本
     const isComposingText = ref(false)
     const isWaitingForCompositionCommitSubmit = ref(false) // ？
-    let compositionCommitSubmitTimer: ReturnType<typeof window.setTimeout> | undefined
+    let compositionCommitSubmitTimer: number | undefined
 
     const focusInputReceiver = () => {
         inputReceiverRef.value?.focus()
