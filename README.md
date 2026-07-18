@@ -85,6 +85,7 @@
 
 - [`Operator_Admin_Workflow.md`](./docs/Operator_Admin_Workflow.md)：本地可视化调整干员立绘并安全发布到雨云的完整流程。
 - [`Security_And_Concurrency_For_Beginners.md`](./docs/Security_And_Concurrency_For_Beginners.md)：面向建站初学者的攻击方式、防护层次、缓存和高并发说明。
+- [`Accessibility_For_Beginners.md`](./docs/Accessibility_For_Beginners.md)：键盘、焦点、屏幕阅读器、动效降级和无障碍验收指南。
 
 ## 🚀 快速开始
 
