@@ -1,24 +1,5 @@
 <script setup lang="ts">
-// Nuxt 中推荐使用 @nuxtjs/color-mode 来控制主题
-const isDarkMode = ref(false)
-const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
-  }
-}
-
-onMounted(() => {
-  // 初始化时读取本地存储或系统偏好
-  if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    isDarkMode.value = true
-    document.documentElement.classList.add('dark')
-  }
-})
+const { isDarkMode, toggleThemePreference } = useThemePreference()
 </script>
 
 <template>
@@ -33,7 +14,7 @@ onMounted(() => {
         <div
             class="pointer-events-none absolute top-[20%] right-[10%] size-75 rounded-full bg-cyan-200/40 dark:bg-cyan-800/30 blur-[80px] transition-colors duration-500" />
 
-        <HomeHeader :is-dark-mode="isDarkMode" @toggle-theme="toggleTheme" />
+        <HomeHeader :is-dark-mode="isDarkMode" @toggle-theme="toggleThemePreference" />
 
         <!-- 核心主体内容 -->
         <main class="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full px-6 sm:px-8 pb-20">

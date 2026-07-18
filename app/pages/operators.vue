@@ -3,13 +3,17 @@ import { isSupportedOperatorId } from '#shared/types/operatorApi'
 import type { SupportedOperatorId } from '#shared/types/operatorApi'
 
 const { operatorDisplayItems, operatorCatalogReady, loadOperatorVoices } = useOperatorBrowserData()
-const { replaceSelectedVoiceLines } = useCustomPracticeSelection()
+const { selectedVoiceLines, replaceSelectedVoiceLines } = useCustomPracticeSelection()
 
 // activeOperatorId 控制抽屉面板的开关
 const activeOperatorId = ref<SupportedOperatorId>()
 
 // 用干员 id 和台词 id 组成全局 key 切换干员后已选台词不丢失
-const selectedVoiceLineIds = ref<ReadonlySet<string>>(new Set<string>())
+const selectedVoiceLineIds = ref<ReadonlySet<string>>(new Set(
+    selectedVoiceLines.value.map((selection) => {
+        return `${selection.operatorId}:${selection.voiceLineId}`
+    }),
+))
 
 const activeOperator = computed(() => {
     return operatorDisplayItems.value.find((operator) => operator.id === activeOperatorId.value)
@@ -54,6 +58,7 @@ const toggleVoiceLineSelection = (operatorId: string, voiceLineId: string): void
     }
 
     selectedVoiceLineIds.value = nextSelectedVoiceLineIds
+    replaceSelectedVoiceLines([...nextSelectedVoiceLineIds])
 }
 
 const startCustomPractice = async (): Promise<void> => {

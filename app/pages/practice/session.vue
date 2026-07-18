@@ -217,6 +217,11 @@ const restartCompletedPractice = async (): Promise<void> => {
  * 加载结束后再播放首题 避免缓存准备期间误播 mock 音频
  */
 const loadPracticeData = async (): Promise<void> => {
+    if (selectedDifficulty.value === 'custom' && requiredOperatorIds.value.length === 0) {
+        await navigateTo('/operators')
+        return
+    }
+
     isPracticeDataLoading.value = loadedOperatorCount.value < requiredOperatorIds.value.length
 
     if (isPracticeDataLoading.value) {
