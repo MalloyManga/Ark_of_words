@@ -38,61 +38,135 @@ watch(
 </script>
 
 <template>
-    <!-- 当前弹窗只展示练习文本池 点击行仅展开详情 后续再接入选题和切题逻辑 -->
-    <Teleport to="body">
-        <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-5 py-6"
-            role="presentation" @click.self="emit('close')">
-            <section
-                class="flex max-h-[min(82vh,42rem)] min-h-[min(82vh,42rem)] w-full max-w-2xl flex-col rounded-2xl border-2 border-ink bg-cream p-5 text-left text-ink shadow-[6px_6px_0_var(--color-ink)]"
-                role="dialog" aria-modal="true" aria-labelledby="practice-pool-title">
-                <div class="flex items-start justify-between gap-4 border-b-2 border-ink pb-4">
-                    <div class="min-w-0">
-                        <p id="practice-pool-title" class="font-zh-playful text-xl font-black">
-                            选择练习文本
-                        </p>
-                        <p class="mt-1 font-romaji text-xs font-bold uppercase tracking-widest text-ink-soft">
-                            POOL · {{ practicePool?.items.length ?? 0 }} 条
-                        </p>
-                    </div>
-                    <button type="button"
-                        class="nb-card nb-interactive inline-flex size-9 shrink-0 items-center justify-center text-ink"
-                        aria-label="关闭练习文本选择" @click="emit('close')">
-                        <IconClose class="size-5" />
-                    </button>
-                </div>
-
-                <div class="scrollbar-hidden mt-4 flex-1 overflow-y-auto pr-1">
-                    <div v-if="practicePool?.items.length" class="grid gap-2.5">
-                        <button v-for="poolItem in practicePool.items" :key="poolItem.id" type="button"
-                            class="cursor-pointer rounded-xl border-2 border-ink bg-paper px-4 py-3 text-left transition-colors duration-150 hover:bg-butter"
-                            :aria-expanded="expandedPoolItemIds.has(poolItem.id)" @click="togglePoolItem(poolItem.id)">
-                            <div class="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                                <span class="font-zh-playful text-sm font-black text-ink sm:text-base">
-                                    {{ poolItem.operator.name }} · {{ poolItem.voiceLine.title }}
+    <AppModalShell :is-open="isOpen" labelled-by="practice-pool-title"
+        panel-class="flex max-h-[85vh] max-w-3xl flex-col overflow-hidden" @close="emit('close')">
+                    <!-- 弹窗 Header (固定在顶部) -->
+                    <div
+                        class="shrink-0 flex items-start justify-between gap-4 px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-xs font-black uppercase tracking-widest text-blue-500 dark:text-cyan-400">
+                                    Current Queue
                                 </span>
-                                <span class="font-fredoka text-xs font-bold text-coral">
-                                    #{{ poolItem.voiceNumber }}
+                                <!-- 数量小徽章 -->
+                                <span
+                                    class="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-cyan-900/50 text-blue-600 dark:text-cyan-400 text-[10px] font-bold">
+                                    {{ practicePool?.items.length ?? 0 }} DATA
                                 </span>
                             </div>
+                            <h2 id="practice-pool-title"
+                                class="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+                                练习文本队列
+                            </h2>
+                        </div>
 
-                            <div v-if="expandedPoolItemIds.has(poolItem.id)"
-                                class="mt-3 grid gap-2 border-t-2 border-ink/10 pt-3">
-                                <p class="wrap-break-word text-sm font-bold leading-6 text-ink">
-                                    {{ poolItem.voiceLine.japaneseText || '暂无日文文本' }}
-                                </p>
-                                <p class="wrap-break-word font-zh-playful text-sm font-bold leading-6 text-ink-soft">
-                                    {{ poolItem.voiceLine.chineseText || '暂无中文译文' }}
-                                </p>
-                            </div>
+                        <!-- 关闭按钮 -->
+                        <button type="button"
+                            class="group flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-colors"
+                            aria-label="关闭练习文本选择" @click="emit('close')">
+                            <IconClose class="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
                         </button>
                     </div>
 
-                    <p v-else
-                        class="rounded-xl border-2 border-ink bg-paper px-4 py-5 font-zh-playful text-sm font-bold text-ink-soft">
-                        暂无可用练习文本
-                    </p>
-                </div>
-            </section>
-        </div>
-    </Teleport>
+                    <!-- 弹窗 Body (滚动区域) -->
+                    <div class="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+                        <div v-if="practicePool?.items.length" class="flex flex-col gap-3">
+
+                            <!-- 单个音频/文本条目 -->
+                            <button v-for="poolItem in practicePool.items" :key="poolItem.id" type="button"
+                                class="group relative flex flex-col w-full text-left rounded-2xl border transition-all duration-300 overflow-hidden focus-visible:outline-none"
+                                :class="[
+                                    expandedPoolItemIds.has(poolItem.id)
+                                        ? 'bg-blue-50/50 dark:bg-slate-800 border-blue-200 dark:border-cyan-800/50 shadow-md shadow-blue-500/5 dark:shadow-black/20'
+                                        : 'bg-white dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/50 hover:border-blue-300 dark:hover:border-cyan-700/50 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                ]" :aria-expanded="expandedPoolItemIds.has(poolItem.id)"
+                                @click="togglePoolItem(poolItem.id)">
+                                <!-- 基础信息行 (始终可见) -->
+                                <div class="flex items-center gap-3 sm:gap-4 px-4 py-3 sm:px-5 sm:py-4">
+                                    <!-- 序号标识 -->
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900/80 text-slate-400 dark:text-slate-500 font-mono text-xs font-bold border border-slate-200/50 dark:border-slate-700/50 group-hover:text-blue-500 dark:group-hover:text-cyan-400 transition-colors">
+                                        {{ String(poolItem.voiceNumber).padStart(2, '0') }}
+                                    </div>
+
+                                    <!-- 标题信息 -->
+                                    <div class="flex flex-1 flex-col min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors">
+                                                {{ poolItem.operator.name }}
+                                            </span>
+                                            <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                            <span
+                                                class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                                                {{ poolItem.voiceLine.title }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 展开/折叠箭头 -->
+                                    <div class="text-slate-300 dark:text-slate-600 transition-transform duration-300"
+                                        :class="expandedPoolItemIds.has(poolItem.id) ? 'rotate-180 text-blue-500 dark:text-cyan-500' : ''">
+                                        <IconChevronRight class="w-5 h-5 rotate-90" />
+                                    </div>
+                                </div>
+
+                                <!-- 展开的详细文本区域 -->
+                                <div class="grid transition-all duration-300 ease-in-out"
+                                    :class="expandedPoolItemIds.has(poolItem.id) ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'">
+                                    <div class="overflow-hidden">
+                                        <div
+                                            class="px-4 pb-4 sm:px-5 sm:pb-5 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 mx-4 sm:mx-5">
+                                            <!-- 日文文本 -->
+                                            <p
+                                                class="text-sm sm:text-base font-bold leading-relaxed text-slate-700 dark:text-slate-300 wrap-break-word mt-3">
+                                                {{ poolItem.voiceLine.japaneseText || '暂无日文文本' }}
+                                            </p>
+                                            <!-- 中文译文 -->
+                                            <p
+                                                class="text-xs sm:text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 wrap-break-word mt-1.5">
+                                                {{ poolItem.voiceLine.chineseText || '暂无中文译文' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- 空状态 -->
+                        <div v-else
+                            class="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-2xl">
+                            <span class="text-4xl mb-3 opacity-50">📭</span>
+                            <p class="text-base font-bold text-slate-500 dark:text-slate-400">暂无可用练习文本</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">请返回上一页重新配置干员或难度</p>
+                        </div>
+                    </div>
+    </AppModalShell>
 </template>
+
+<style scoped>
+/* 优雅的自定义滚动条 */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3);
+    /* slate-400/30 */
+    border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(71, 85, 105, 0.5);
+    /* slate-600/50 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.5);
+}
+</style>
