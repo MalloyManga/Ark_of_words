@@ -22,3 +22,12 @@ export interface OperatorDisplayItem {
     professionIconSrc: string
     voiceLines: readonly OperatorDisplayVoiceLine[]
 }
+
+export interface SelectedOperatorVoiceLineDisplay {
+    selectionId: string
+    operatorDisplayName: string
+    voiceLineTitle: string
+    japaneseText: string
+    chineseText: string
+    isVoiceLineLoaded: boolean
+}

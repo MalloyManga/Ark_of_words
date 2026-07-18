@@ -4,6 +4,10 @@ interface SelectionHeaderProps {
 }
 
 defineProps<SelectionHeaderProps>()
+
+const emit = defineEmits<{
+    openSelectedVoices: []
+}>()
 </script>
 
 <template>
@@ -15,9 +19,9 @@ defineProps<SelectionHeaderProps>()
             <IconBack class="w-5 h-5" />
         </NuxtLink>
 
-        <div
-            class="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm"
-            aria-live="polite">
+        <button type="button"
+            class="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-slate-800/80 shadow-sm transition-all hover:-translate-y-0.5 hover:text-blue-500 dark:hover:text-cyan-400"
+            aria-label="查看已选语音" @click="emit('openSelectedVoices')">
             <div class="relative text-slate-600 dark:text-slate-400">
                 <IconCart class="w-5 h-5" />
                 <span v-if="selectedVoiceLineCount > 0" :key="selectedVoiceLineCount"
@@ -26,7 +30,7 @@ defineProps<SelectionHeaderProps>()
                 </span>
             </div>
             <span class="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-200">已选台词</span>
-        </div>
+        </button>
     </header>
 </template>
 
