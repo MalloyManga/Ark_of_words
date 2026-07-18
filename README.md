@@ -31,7 +31,7 @@
 - [x] 难度映射已按语音标题接入六位 MVP 干员：简单 90 题 中等 36 题 困难 102 题。
 - [x] 使用 Kuromoji 与 WanaKana 在服务端生成真实假名 罗马字 原形和词性，并随干员语音长期缓存。
 - [x] 练习数据加载期间显示干员加载进度，避免冷缓存时页面看起来无响应。
-- [x] 完成整轮练习后支持原顺序再次练习、同难度洗牌或返回自由配置。
+- [x] 每个难度完整池随机洗牌后按五题分组，每组完成后支持原组重练、进入下一组或返回自由配置。
 - [x] 使用浏览器 LocalStorage 保存主题偏好和自由配置选择。
 
 ### 阶段 2：按需数据获取机制 (Nuxt Server API)
@@ -80,6 +80,11 @@
 - **运行成本策略**：雨云单机使用长期 Node 进程复用 Kuromoji 词典，PRTS 文本和读音结果写入持久化 Nitro 缓存；避免长期爬虫和无边界音频中转。
 - **日语形态素解析**：Kuromoji 在 Nitro 服务端懒加载词典，WanaKana 生成假名与罗马字，结果随语音接口缓存。
 - **部署方案**：雨云 Linux 云服务器运行 Docker Compose，Nuxt node-server 提供页面与 API，Caddy 负责反向代理和 HTTPS，named volume 持久化 Nitro 缓存。
+
+## 📖 学习文档
+
+- [`Operator_Admin_Workflow.md`](./docs/Operator_Admin_Workflow.md)：本地可视化调整干员立绘并安全发布到雨云的完整流程。
+- [`Security_And_Concurrency_For_Beginners.md`](./docs/Security_And_Concurrency_For_Beginners.md)：面向建站初学者的攻击方式、防护层次、缓存和高并发说明。
 
 ## 🚀 快速开始
 
