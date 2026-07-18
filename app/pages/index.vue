@@ -17,7 +17,8 @@ const { isDarkMode, toggleThemePreference } = useThemePreference()
         <HomeHeader :is-dark-mode="isDarkMode" @toggle-theme="toggleThemePreference" />
 
         <!-- 核心主体内容 -->
-        <main class="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full px-6 sm:px-8 pb-20">
+        <main id="main-content" tabindex="-1"
+            class="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full px-6 sm:px-8 pb-20">
 
             <HomeHero />
             <HomeFeatureGrid />

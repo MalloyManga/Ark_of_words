@@ -4,5 +4,6 @@
 
 <template>
     <NuxtRouteAnnouncer />
+    <AppSkipLink />
     <NuxtPage />
 </template>

@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <main
+    <main id="main-content" tabindex="-1"
         class="relative min-h-screen bg-slate-50 dark:bg-slate-950 px-4 sm:px-8 py-6 text-slate-800 dark:text-slate-100 flex flex-col overflow-hidden transition-colors duration-500">
 
         <!-- 沉浸式微光背景 -->

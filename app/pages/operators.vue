@@ -139,7 +139,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <main
+    <main id="main-content" tabindex="-1"
         class="relative min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-6 text-slate-800 dark:text-slate-100 sm:px-6 lg:px-8 transition-colors duration-500 overflow-hidden flex flex-col">
 
         <!-- 氛围光晕背景 -->

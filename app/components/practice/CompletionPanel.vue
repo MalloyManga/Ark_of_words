@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 <template>
     <section class="flex w-full flex-col items-center justify-center py-8 text-center sm:py-12"
-        aria-labelledby="practice-completion-title">
+        aria-labelledby="practice-completion-title" aria-live="polite">
         <span class="text-xs font-black uppercase tracking-[0.25em] text-blue-500 dark:text-cyan-400">
             Practice Complete
         </span>

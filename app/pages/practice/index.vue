@@ -3,7 +3,7 @@ import { practiceDifficultyOptions } from '~/constants/practiceDifficultyOptions
 </script>
 
 <template>
-    <main
+    <main id="main-content" tabindex="-1"
         class="relative min-h-screen bg-slate-50 dark:bg-slate-950 px-6 py-8 text-slate-800 dark:text-slate-100 flex items-center justify-center overflow-hidden transition-colors duration-500">
 
         <!-- 氛围光晕背景 -->
