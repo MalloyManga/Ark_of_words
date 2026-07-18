@@ -52,13 +52,16 @@ const {
     currentPracticePool,
     currentItemNumber,
     totalItemCount,
+    practiceQueueGroups,
+    currentPracticeGroupNumber,
+    totalPracticeGroupCount,
     targetPracticeText,
     kanaHint,
     practiceReadingUnits,
     isPracticeCycleCompleted,
     advanceToNextItem,
     restartPracticeCycle,
-    shufflePracticeCycle,
+    advanceToNextPracticeGroup,
 } = usePracticeLineSource({
     poolId: selectedDifficulty,
     difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
@@ -205,7 +208,7 @@ const chooseNextPractice = async (): Promise<void> => {
         return
     }
 
-    await startPracticeCycle(shufflePracticeCycle)
+    await startPracticeCycle(advanceToNextPracticeGroup)
 }
 
 const restartCompletedPractice = async (): Promise<void> => {
@@ -320,6 +323,8 @@ onBeforeUnmount(() => {
 
         <!-- Modals (保持原有逻辑) -->
         <PracticePoolModal :is-open="isPracticeInfoModalOpen" :practice-pool="currentPracticePool"
+            :practice-groups="practiceQueueGroups" :current-practice-group-number="currentPracticeGroupNumber"
+            :total-practice-group-count="totalPracticeGroupCount"
             @close="closePracticeInfoModal" />
         <PracticeRomajiInputMethodModal :is-open="isRomajiInputMethodModalOpen" @close="closeRomajiInputMethodModal"
             @switch-to-kana-mode="handleSwitchToKanaMode" />

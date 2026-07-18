@@ -9,6 +9,7 @@ import {
     createPracticePoolsFromOperatorVoiceResponses,
 } from '~/constants/practicePools'
 import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
+import type { PracticeQueueGroup } from '~/composables/usePracticeSessionQueue'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
 import wisadelVoicePageRawData from '~/data/prts-wisadel-voice-page.slots.raw.json'
 
@@ -32,6 +33,9 @@ export interface PracticeLineSource {
     currentPracticePoolItem: ComputedRef<PracticePoolItem | undefined>
     currentItemNumber: ComputedRef<number>
     totalItemCount: ComputedRef<number>
+    practiceQueueGroups: ComputedRef<readonly PracticeQueueGroup[]>
+    currentPracticeGroupNumber: ComputedRef<number>
+    totalPracticeGroupCount: ComputedRef<number>
     currentPracticeLine: ComputedRef<PrtsVoiceLine | undefined>
     currentPracticeOperatorName: ComputedRef<string>
     currentPracticeAudioPath: ComputedRef<string>
@@ -44,7 +48,7 @@ export interface PracticeLineSource {
     isPracticeCycleCompleted: Readonly<Ref<boolean>>
     advanceToNextItem: () => void
     restartPracticeCycle: () => void
-    shufflePracticeCycle: () => void
+    advanceToNextPracticeGroup: () => void
 }
 
 const mockPracticeAudioFileName = '编入队伍.wav'
@@ -102,10 +106,13 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         currentPracticePoolItem,
         currentItemNumber,
         totalItemCount,
+        practiceQueueGroups,
+        currentPracticeGroupNumber,
+        totalPracticeGroupCount,
         isPracticeCycleCompleted,
         advanceToNextItem,
         restartPracticeCycle,
-        shufflePracticeCycle,
+        advanceToNextPracticeGroup,
     } = usePracticeSessionQueue({
         practicePool: currentPracticePool,
     })
@@ -142,6 +149,9 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         currentPracticePoolItem,
         currentItemNumber,
         totalItemCount,
+        practiceQueueGroups,
+        currentPracticeGroupNumber,
+        totalPracticeGroupCount,
         currentPracticeLine,
         currentPracticeOperatorName,
         currentPracticeAudioPath,
@@ -154,6 +164,6 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
         isPracticeCycleCompleted,
         advanceToNextItem,
         restartPracticeCycle,
-        shufflePracticeCycle,
+        advanceToNextPracticeGroup,
     }
 }

@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import type { PracticePool } from '~/constants/practicePools'
+import type { PracticeQueueGroup } from '~/composables/usePracticeSessionQueue'
 
 interface PracticePoolModalProps {
     isOpen: boolean
     practicePool?: PracticePool
+    practiceGroups: readonly PracticeQueueGroup[]
+    currentPracticeGroupNumber: number
+    totalPracticeGroupCount: number
 }
 
-const { isOpen, practicePool } = defineProps<PracticePoolModalProps>()
+const {
+    isOpen,
+    practicePool,
+    practiceGroups,
+    currentPracticeGroupNumber,
+    totalPracticeGroupCount,
+} = defineProps<PracticePoolModalProps>()
 
 const emit = defineEmits<{
     close: []
@@ -52,7 +62,7 @@ watch(
                                 <!-- 数量小徽章 -->
                                 <span
                                     class="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-cyan-900/50 text-blue-600 dark:text-cyan-400 text-[10px] font-bold">
-                                    {{ practicePool?.items.length ?? 0 }} DATA
+                                    {{ totalPracticeGroupCount }} GROUPS · {{ practicePool?.items.length ?? 0 }} DATA
                                 </span>
                             </div>
                             <h2 id="practice-pool-title"
@@ -71,10 +81,31 @@ watch(
 
                     <!-- 弹窗 Body (滚动区域) -->
                     <div class="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-                        <div v-if="practicePool?.items.length" class="flex flex-col gap-3">
+                        <div v-if="practiceGroups.length" class="flex flex-col gap-5">
+                            <section v-for="practiceGroup in practiceGroups" :key="practiceGroup.id"
+                                class="rounded-2xl border p-3 transition-colors sm:p-4"
+                                :class="practiceGroup.groupNumber === currentPracticeGroupNumber
+                                    ? 'border-blue-300 bg-blue-50/40 dark:border-cyan-700/60 dark:bg-cyan-950/10'
+                                    : 'border-slate-200/60 bg-slate-50/50 dark:border-slate-700/50 dark:bg-slate-900/30'">
+                                <div class="mb-3 flex items-center justify-between gap-3 px-1">
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-black text-slate-700 dark:text-slate-200">
+                                            第 {{ practiceGroup.groupNumber }} 组
+                                        </h3>
+                                        <span v-if="practiceGroup.groupNumber === currentPracticeGroupNumber"
+                                            class="rounded-md bg-blue-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white dark:bg-cyan-500 dark:text-cyan-950">
+                                            Current
+                                        </span>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                                        {{ practiceGroup.items.length }} 条
+                                    </span>
+                                </div>
+
+                                <div class="flex flex-col gap-3">
 
                             <!-- 单个音频/文本条目 -->
-                            <button v-for="poolItem in practicePool.items" :key="poolItem.id" type="button"
+                            <button v-for="poolItem in practiceGroup.items" :key="poolItem.id" type="button"
                                 class="group relative flex flex-col w-full text-left rounded-2xl border transition-all duration-300 overflow-hidden focus-visible:outline-none"
                                 :class="[
                                     expandedPoolItemIds.has(poolItem.id)
@@ -132,6 +163,8 @@ watch(
                                     </div>
                                 </div>
                             </button>
+                                </div>
+                            </section>
                         </div>
 
                         <!-- 空状态 -->
