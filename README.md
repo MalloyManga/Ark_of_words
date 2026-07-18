@@ -1,125 +1,228 @@
-﻿# Ark_of_words
+# Ark_of_words
 
-基于《明日方舟》干员语音的日语听写与打字练习 Web 应用。听写干员的经典语音，练习日语键盘输入，学习单词的原型与词性！
+基于《明日方舟》干员语音的日语听写与键盘输入练习 Web 应用
 
-## ✨ 项目规划与特性
+项目使用 Nuxt 4 构建前后端，在服务端按需获取并缓存 PRTS Wiki 数据，将日文台词转换为可供假名和罗马字输入练习的阅读单元
 
-- **🎧 听音打字练习**：听干员语音进行日语打字练习，智能判断正误（过滤标点符号，统一使用空格区分）。
-- **📊 难度分级**：
-  - **简单**：“编入队伍”到“作战中4”等偏短的作战语音。
-  - **困难**：“任命助理”到“交谈”等多句组合的日常长语音。
-- **📚 智能单词解析**：利用自然语言处理（NLP）解析句中的单词，提供原形还原（如 `見て` -> `見る`）并辅助日语学习。
-- **🖼️ 沉浸式图文体验**：干员精美立绘展示。
+> 项目当前处于 MVP 阶段 尚未提供稳定的公开在线地址
 
-## 🧑🏻‍💻 开发路线 (Roadmap)
+## 功能
 
-### 阶段 1：UI 原型与前端体验
-- [x] 搭建 Nuxt 4 基础模板并配置 Tailwind CSS。
-- [x] 确定 UI 设计基调：偏学习工具而不是宣传页，优先保证练习流程清晰、信息密度适中、移动端可用。
-- [x] 建立统一图标组件，避免用 emoji 充当交互图标。
-- [x] 开发首页：看板干员展示、练习入口、浏览入口、当前进度区域。
-- [x] 开发难度选择页与练习会话页，跑通从首页开始练习的页面流转。
-- [x] 开发干员浏览 / 自由配置页 UI，先使用本地 mock 数据展示干员与语音条目。
-- [x] 封装基础练习界面：台词显示、输入区、工具栏、池信息弹窗、显示模式弹窗与罗马字输入法提示弹窗。
-- [x] 实现假名 / IME 输入模式与罗马字直接输入模式，包含逐字符判定、光标推进、错误状态、额外输入处理与完成后切换题目。
-- [x] 建立本地 mock 数据结构，并加入 PRTS 原始 JSON 解析工具用于后续接入真实数据。
-- [x] 建立响应式布局，覆盖手机、平板和桌面常用视口。
+- 使用真实干员日语语音进行听写练习
+- 支持假名 / 汉字输入和直接罗马字输入
+- 逐字符显示正确 错误 多余和待输入状态
+- 将简单 中等 困难完整题库随机洗牌后按每五题分组
+- 支持查看当前随机队列 原组重练和进入下一组
+- 从干员目录自由选择语音组成自定义练习
+- 使用 LocalStorage 保存主题和自由配置选择
+- 每道新题自动尝试播放当前语音
+- 提供键盘焦点管理 动效降级和基础屏幕阅读器语义
+- 使用服务端长缓存减少重复请求和上游压力
 
-#### 阶段 1 收尾与待办
-- [x] 封装无视觉 HTML5 音频控制组件，并接入当前真实 PRTS 音频地址。
-- [x] 自由配置页所选语音已能生成真实练习池并进入练习会话。
-- [x] 难度映射已按语音标题接入六位 MVP 干员：简单 90 题 中等 36 题 困难 102 题。
-- [x] 使用 Kuromoji 与 WanaKana 在服务端生成真实假名 罗马字 原形和词性，并随干员语音长期缓存。
-- [x] 练习数据加载期间显示干员加载进度，避免冷缓存时页面看起来无响应。
-- [x] 每个难度完整池随机洗牌后按五题分组，每组完成后支持原组重练、进入下一组或返回自由配置。
-- [x] 使用浏览器 LocalStorage 保存主题偏好和自由配置选择。
+## 当前支持的干员
 
-### 阶段 2：按需数据获取机制 (Nuxt Server API)
-- [x] 验证 PRTS Wiki 的 MediaWiki API (`api.php`) 能获取干员“语音记录”原始数据。
-- [x] 编写 PRTS 原始 JSON 解析 / 提取工具，能从 mock 数据中整理干员语音文本与音频文件信息。
-- [x] 开发 `server/api/operators` 与 `server/api/operators/:operatorId/voices` 按需获取接口，并使用受控干员白名单校验请求参数。
-- [x] 使用 `defineCachedEventHandler` / Nitro Cache 做 30 天缓存与 90 天 SWR，并将缓存持久化到服务器磁盘。
-- [x] 使用 Nitro 单进程 pending 请求合并，避免同一个干员在冷缓存时重复请求 PRTS。
-- [ ] 如果 MediaWiki API 无法覆盖必要内容，再评估 `linkedom` 等轻量 HTML 解析方案；不优先使用 Puppeteer 这类重型浏览器爬虫。
-- [x] 处理接口异常、10 秒超时、SWR 旧缓存回退和基础访问礼仪（明确 User-Agent、按需请求、不批量抓取）。
+- 凯尔希·思衡托
+- 伊内丝
+- 维什戴尔
+- 余
+- 黍
+- 望
 
-### 阶段 3：音频控制与核心打字逻辑
-- [ ] 音频控制器已支持播放 暂停和进度跳转，仍待设计可视化暂停与进度操作 UI。
-- [x] 音频按需加载，只绑定当前题目并使用 `preload="none"`，不预加载整个语音池。
-- [x] 编写文本标准化函数，去除原始日文台词中的常见标点，统一转换为停顿空格。
-- [x] 开发核心打字判定逻辑，监听真实键入事件并即时判定输入内容。
-- [x] 添加正确 / 错误状态展示、错误标红与完成后的下一题触发。
-- [x] 设计并接入简单 / 中等 / 困难 / 自由配置的练习池入口。
-- [x] 基于真实多干员语音数据完善难度区间与练习池生成规则。
+支持范围由服务端白名单控制 后续计划通过管理后台维护干员 语音启用状态 难度覆盖和立绘位置
 
-### 阶段 4：学习增强与体验打磨
-- [ ] 接入 `kuromoji.js` 或类似工具，显示日语单词原形与词性。
-- [ ] 完善无障碍体验：键盘操作、焦点状态、动效降级、颜色对比度。
+## 练习模式
 
-## 🔮 未来展望 (Future Outlook)
+### 标准难度
 
-- [ ] **智能形态素解析**：引入 `kuromoji.js` 或类似 NLP 工具，将句子拆解为单词并显示原型（如“見て” -> “見る”）。
-- [ ] **日文歌曲补完企划**：扩展题目来源，不仅仅是干员语音，加入热门日文歌曲打字模式。
-- [ ] **开源贡献指南**：为其他有兴趣加入的同好完善 Contributing 指南。
+语音按照稳定标题划分为简单 中等和困难
 
-## 🧭 数据获取与成本策略
+进入练习后完整难度池会先随机洗牌 再按每五题切分
 
-- **低成本目标**：前端静态资源走免费托管额度，数据获取走 Serverless API；个人项目和小流量阶段以 0 成本运行为目标，但不承诺无限免费。
-- **缓存优先**：干员语音数据变化频率低，接口应使用长 TTL 缓存与 SWR。冷缓存只请求 PRTS 一次，后续用户优先读取缓存。
-- **缓存边界**：`defineCachedEventHandler` 是首选工具，但不同部署平台的缓存持久性不同；如默认内存缓存不稳定，再评估平台 KV、NuxtHub Cache、Upstash Redis 等免费额度内方案。
-- **访问礼仪**：设置清晰的 User-Agent，包含项目名、用途和仓库地址；设置请求超时；遇到 `429`、`403`、`5xx` 时退避，不连续重试。
-- **范围控制**：不做全站扫描，不预抓取白名单外数据；标准难度只顺序加载六位 MVP 干员，自由配置只请求用户展开的干员；API 参数必须白名单校验，避免变成开放代理。
-- **音频带宽**：不通过自己的 Server API 中转音频文件，也不预加载全部音频；只在用户播放当前题目时加载对应音频，尽量减少对 PRTS 的带宽压力。
+这种方式保证同一轮随机队列内不会重复或遗漏题目
 
-## 🛠️ 技术栈选择
+### 自由配置
 
-- **前端框架**：[Nuxt.js](https://nuxt.com/) / Vue 3
-- **样式方案**：[Tailwind CSS](https://tailwindcss.com/)
-- **文本数据获取**：使用 Nuxt Server API 按需获取 PRTS Wiki 数据；优先解析 MediaWiki API 返回的 wikitext，必要时再使用 `linkedom` 等轻量 HTML 解析方案。
-- **缓存策略**：使用 Nitro Cache / `defineCachedEventHandler`，配合长 TTL、SWR 和失败回退，降低函数调用和 PRTS 请求量。
-- **运行成本策略**：雨云单机使用长期 Node 进程复用 Kuromoji 词典，PRTS 文本和读音结果写入持久化 Nitro 缓存；避免长期爬虫和无边界音频中转。
-- **日语形态素解析**：Kuromoji 在 Nitro 服务端懒加载词典，WanaKana 生成假名与罗马字，结果随语音接口缓存。
-- **部署方案**：雨云 Linux 云服务器运行 Docker Compose，Nuxt node-server 提供页面与 API，Caddy 负责反向代理和 HTTPS，named volume 持久化 Nitro 缓存。
+用户可以在干员页面选择任意已支持语音
 
-## 📖 学习文档
+选择结果保存在当前浏览器中 刷新后仍可继续编辑或进入练习
 
-- [`Operator_Admin_Workflow.md`](./docs/Operator_Admin_Workflow.md)：本地可视化调整干员立绘并安全发布到雨云的完整流程。
-- [`Security_And_Concurrency_For_Beginners.md`](./docs/Security_And_Concurrency_For_Beginners.md)：面向建站初学者的攻击方式、防护层次、缓存和高并发说明。
-- [`Accessibility_For_Beginners.md`](./docs/Accessibility_For_Beginners.md)：键盘、焦点、屏幕阅读器、动效降级和无障碍验收指南。
+## 技术架构
 
-## 🚀 快速开始
+```mermaid
+flowchart LR
+    Browser[浏览器]
+    Frontend[Nuxt Vue 前端]
+    Api[Nuxt Server API]
+    Cache[(Nitro 文件缓存)]
+    PRTS[PRTS MediaWiki API]
+    Media[PRTS 静态媒体]
 
-### 1. 克隆项目环境
+    Browser --> Frontend
+    Frontend --> Api
+    Api <--> Cache
+    Api -->|冷缓存| PRTS
+    Api -->|返回文本 读音和资源 URL| Frontend
+    Browser -->|当前实现直接读取| Media
+```
+
+浏览器不会直接请求 PRTS MediaWiki API
+
+Nuxt Server 负责：
+
+- 干员白名单校验
+- MediaWiki 请求和响应校验
+- PRTS wikitext 解析
+- 日文分词 假名 罗马字 原形和词性生成
+- Nitro 长缓存和错误边界
+
+浏览器当前会直接读取 PRTS 返回的立绘和音频静态地址
+
+正式公开前需要确认相关静态资源的第三方使用方式
+
+## 技术栈
+
+- [Nuxt 4](https://nuxt.com/) / Vue 3
+- TypeScript
+- Tailwind CSS 4
+- Nitro Server API 与文件缓存
+- Kuromoji 日语形态素分析
+- WanaKana 假名与罗马字转换
+- Docker Compose
+- Caddy 反向代理与 HTTPS
+
+## 项目结构
+
+```text
+app/
+  pages/             页面入口
+  components/        展示和局部交互组件
+  composables/       前端状态与业务流程
+  constants/         难度 题库和显示规则
+
+shared/
+  types/             前后端共享 API 类型
+  utils/             PRTS 原始数据解析
+
+server/
+  api/               Nuxt Server API 路由
+  domain/prts/       PRTS 请求和业务标准化
+  domain/japanese/   日语读音生成
+
+deploy/              Caddy 配置
+```
+
+完整数据流和代码审查顺序见 [`Project_Architecture_Review_Guide.md`](./docs/Project_Architecture_Review_Guide.md)
+
+Nuxt 后端如何自动生效见 [`Nuxt_Backend_In_This_Project.md`](./docs/Nuxt_Backend_In_This_Project.md)
+
+## 本地开发
+
+### 环境要求
+
+- Node.js 22
+- npm
+- 可以访问 PRTS Wiki 的网络环境
+
+### 安装
+
 ```bash
 git clone git@github.com:MalloyManga/Ark_of_words.git
 cd Ark_of_words
-```
-
-### 2. 安装依赖包
-```bash
 npm install
-# 或者使用 pnpm install / yarn install
 ```
 
-### 3. 启动开发服务器
+### 启动开发服务器
+
 ```bash
 npm run dev
 ```
-启动后在浏览器中访问 `http://localhost:3000` 即可查看项目页面。
 
-### 4. 构建与部署
+默认访问地址：
 
-如果只预览前端静态页面，可以运行：
-```bash
-npm run generate
+```text
+http://localhost:3000
 ```
 
-雨云 Docker Compose 的完整准备与操作步骤见 [`RAINYUN_DEPLOYMENT.md`](./RAINYUN_DEPLOYMENT.md)。
+### 可用脚本
 
-## 📄 许可与声明
+| 命令 | 作用 |
+|---|---|
+| `npm run dev` | 启动 Nuxt 开发服务器 |
+| `npm run build` | 构建生产 Node Server |
+| `npm run preview` | 本地预览生产构建 |
+| `npm run generate` | 生成静态输出 当前真实数据接口仍需单独部署 Nuxt Server |
+| `npx nuxi typecheck` | 执行 Nuxt TypeScript 检查 |
 
-本项目源码部分采用 MIT License 开源。
+## Server API
 
-项目中涉及的《明日方舟》相关文本、音频、图片、角色名称、动画等素材**均不包含在 MIT License 授权范围内**，其版权归上海鹰角网络科技有限公司（Hypergryph）及相关权利方所有。
+| 方法 | 地址 | 作用 |
+|---|---|---|
+| `GET` | `/api/health` | 服务健康检查 |
+| `GET` | `/api/operators` | 获取支持的干员目录和立绘配置 |
+| `GET` | `/api/operators/:operatorId/voices` | 获取单个干员语音和日语阅读单元 |
 
-本项目仅用于非商业学习交流与功能原型展示，禁止用于盈利用途，不得视为本项目对相关素材进行了再授权。
+干员参数必须通过服务端白名单
+
+目录和语音接口使用 30 天缓存 90 天旧数据保留和 SWR
+
+## 部署
+
+仓库包含：
+
+- 多阶段 Node 22 Dockerfile
+- Nuxt `node-server` 运行配置
+- Docker Compose
+- Caddy 反向代理
+- HTTPS 和安全响应头配置
+- Nitro 缓存持久化卷
+- 容器健康检查
+
+雨云 Linux 服务器部署步骤见 [`RAINYUN_DEPLOYMENT.md`](./RAINYUN_DEPLOYMENT.md)
+
+仓库配置只是部署准备 真实服务器仍需完成镜像构建 HTTPS 健康检查 更新回滚和资源监控
+
+## 文档
+
+### 架构与数据
+
+- [`Project_Architecture_Review_Guide.md`](./docs/Project_Architecture_Review_Guide.md)：系统总架构 数据流和代码审查顺序
+- [`Nuxt_Backend_In_This_Project.md`](./docs/Nuxt_Backend_In_This_Project.md)：以本项目解释 Nuxt Server API Domain Nitro 和部署运行流程
+- [`MediaWiki_API_Learning.md`](./docs/MediaWiki_API_Learning.md)：PRTS MediaWiki API 基础
+- [`Architecture_Tutorial_Network_Cache.md`](./docs/Architecture_Tutorial_Network_Cache.md)：缓存 SWR 带宽与上游访问礼仪
+- [`Japanese_Reading_Engine.md`](./docs/Japanese_Reading_Engine.md)：Kuromoji 与 WanaKana 加载和生效流程
+
+### 部署与维护
+
+- [`RAINYUN_DEPLOYMENT.md`](./RAINYUN_DEPLOYMENT.md)：雨云 Docker Compose 首次部署手册
+- [`Security_And_Concurrency_For_Beginners.md`](./docs/Security_And_Concurrency_For_Beginners.md)：安全 高并发和部署检查
+- [`Operator_Admin_Workflow.md`](./docs/Operator_Admin_Workflow.md)：未来干员与立绘后台发布设计
+- [`Accessibility_For_Beginners.md`](./docs/Accessibility_For_Beginners.md)：键盘 屏幕阅读器和无障碍验收
+
+## 当前限制
+
+- 尚未完成真实雨云环境部署验证
+- PRTS 静态立绘和音频的第三方使用方式仍待确认
+- 当前仅支持六位白名单干员
+- 管理后台 SQLite 和发布 API 尚未实现
+- 可视化音频进度和暂停操作尚未提供
+- 形态素原形与词性已经在服务端生成 但尚未完整展示到练习 UI
+- 项目保留少量本地 mock 数据用于开发兜底
+
+## 后续计划
+
+- 完成雨云私密部署和真实运维闭环
+- 建立干员 语音规则和立绘位置管理后台
+- 增加生产日志 监控 回滚和限流验证
+- 根据素材授权结果确定静态资源策略
+- 将公开读取路径逐步迁移为静态 JSON 与 CDN
+- 完成形态素学习信息 UI
+
+## 许可与素材声明
+
+项目作者计划使用 MIT License 发布源码 正式授权范围将以仓库后续提供的独立 `LICENSE` 文件为准
+
+项目涉及的《明日方舟》文本 音频 图片 角色名称和相关素材不包含在 MIT License 授权范围内 其权利归原权利方所有
+
+本项目仅用于非商业学习与技术交流 不对相关游戏素材进行再授权
+
+PRTS Wiki 数据与静态资源的使用应遵守其站点规则和管理方要求

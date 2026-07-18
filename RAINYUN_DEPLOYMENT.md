@@ -52,10 +52,8 @@ docker compose version
 ```bash
 git clone git@github.com:MalloyManga/Ark_of_words.git
 cd Ark_of_words
-git switch <准备部署的分支或主分支>
+git switch main
 ```
-
-当前 Codex 本地分支尚未推送 在你确认前服务器无法取得这些提交
 
 ## 5. 配置访问地址
 
@@ -114,8 +112,8 @@ curl --fail http://127.0.0.1/api/health
 1. 首页和难度选择页
 2. 六位干员目录
 3. 展开干员后获取 38 条语音
-4. 自由选择后进入练习
-5. 简单显示 90 题 中等显示 36 题 困难显示 102 题
+4. 自由选择后进入五题分组练习
+5. 标准难度完整池随机洗牌并按每五题分组
 6. 日文和罗马字输入判定
 7. 当前题目音频播放
 
@@ -182,15 +180,23 @@ docker system df
 
 如果后续允许自建缓存 应在独立分支实现白名单校验 Range 请求和磁盘缓存 不要让接口成为任意 URL 代理
 
-## 12. 当前无法在本机完成的检查
+## 12. 仓库静态检查与真实部署边界
 
-当前开发电脑没有 Docker
-
-因此本分支只完成了：
+仓库代码已经完成：
 
 - Dockerfile 静态审查
 - Compose YAML 结构解析
 - Nuxt 配置生成
 - 健康接口 TypeScript 语法转换
 
-真实镜像构建 Caddy 配置加载和容器健康检查需要在安装 Docker 后执行
+以下内容必须在真实雨云服务器完成 不能由仓库静态检查代替：
+
+- Docker 镜像实际构建
+- Caddy 配置加载和 HTTPS 申请
+- 容器健康检查和重启恢复
+- 公网或 Tailscale 私网访问
+- Nitro 缓存卷重建后的持久化验证
+- CPU 内存 磁盘和流量观察
+- 更新与回滚演练
+
+项目整体架构 部署知识地图和代码审查顺序见 [`Project_Architecture_Review_Guide.md`](./docs/Project_Architecture_Review_Guide.md)
