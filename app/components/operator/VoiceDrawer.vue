@@ -6,12 +6,17 @@ interface VoiceDrawerProps {
     isVoiceLineSelected: (operatorId: string, voiceLineId: string) => boolean
 }
 
-defineProps<VoiceDrawerProps>()
+const { activeOperator, isVoiceLineSelected } = defineProps<VoiceDrawerProps>()
 
 const emit = defineEmits<{
     close: []
     toggleVoiceLine: [operatorId: string, voiceLineId: string]
 }>()
+
+const { overlayPanelRef, handleOverlayKeydown } = useOverlayFocusTrap({
+    isOpen: () => activeOperator !== undefined,
+    onEscapeClose: () => emit('close'),
+})
 
 const handleToggleVoiceLine = (operatorId: string, voiceLineId: string): void => {
     emit('toggleVoiceLine', operatorId, voiceLineId)
@@ -26,15 +31,18 @@ const handleToggleVoiceLine = (operatorId: string, voiceLineId: string): void =>
     </Transition>
 
     <Transition name="voice-drawer">
-        <aside v-if="activeOperator"
-            class="fixed top-0 right-0 z-50 h-screen w-full max-w-md lg:max-w-lg flex flex-col bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-l border-white/50 dark:border-slate-700/50 shadow-2xl shadow-blue-900/10 dark:shadow-black/40">
+        <aside v-if="activeOperator" ref="overlayPanelRef" tabindex="-1" role="dialog" aria-modal="true"
+            aria-labelledby="operator-voice-drawer-title"
+            class="fixed top-0 right-0 z-50 h-screen w-full max-w-md lg:max-w-lg flex flex-col bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-l border-white/50 dark:border-slate-700/50 shadow-2xl shadow-blue-900/10 dark:shadow-black/40"
+            @keydown="handleOverlayKeydown">
             <div
                 class="flex shrink-0 items-center justify-between px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50">
                 <div class="flex flex-col">
                     <span class="text-xs font-black uppercase tracking-widest text-blue-500 dark:text-cyan-500">
                         Operator File
                     </span>
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                    <h2 id="operator-voice-drawer-title"
+                        class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-1">
                         {{ activeOperator.displayName }}
                     </h2>
                 </div>

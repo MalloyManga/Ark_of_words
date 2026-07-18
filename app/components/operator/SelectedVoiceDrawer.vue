@@ -6,13 +6,18 @@ interface SelectedVoiceDrawerProps {
     selectedVoiceLines: readonly SelectedOperatorVoiceLineDisplay[]
 }
 
-defineProps<SelectedVoiceDrawerProps>()
+const { isOpen, selectedVoiceLines } = defineProps<SelectedVoiceDrawerProps>()
 
 const emit = defineEmits<{
     close: []
     removeVoiceLine: [selectionId: string]
     clearVoiceLines: []
 }>()
+
+const { overlayPanelRef, handleOverlayKeydown } = useOverlayFocusTrap({
+    isOpen: () => isOpen,
+    onEscapeClose: () => emit('close'),
+})
 </script>
 
 <template>
@@ -23,9 +28,9 @@ const emit = defineEmits<{
     </Transition>
 
     <Transition name="selected-voice-drawer">
-        <aside v-if="isOpen"
+        <aside v-if="isOpen" ref="overlayPanelRef" tabindex="-1" role="dialog" aria-modal="true"
             class="fixed right-0 top-0 z-50 flex h-screen w-full max-w-md flex-col border-l border-white/50 bg-white/80 shadow-2xl shadow-blue-900/10 backdrop-blur-2xl dark:border-slate-700/50 dark:bg-slate-900/80 dark:shadow-black/40"
-            aria-labelledby="selected-voice-drawer-title">
+            aria-labelledby="selected-voice-drawer-title" @keydown="handleOverlayKeydown">
             <header
                 class="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200/50 px-6 py-5 dark:border-slate-700/50">
                 <div>

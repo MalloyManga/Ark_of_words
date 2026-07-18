@@ -10,6 +10,11 @@ const { isOpen, labelledBy, panelClass = '' } = defineProps<AppModalShellProps>(
 const emit = defineEmits<{
     close: []
 }>()
+
+const { overlayPanelRef, handleOverlayKeydown } = useOverlayFocusTrap({
+    isOpen: () => isOpen,
+    onEscapeClose: () => emit('close'),
+})
 </script>
 
 <template>
@@ -20,9 +25,10 @@ const emit = defineEmits<{
                 <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity dark:bg-slate-950/60"
                     @click="emit('close')" />
 
-                <section
+                <section ref="overlayPanelRef" tabindex="-1"
                     class="modal-dialog relative w-full rounded-3xl border border-white/80 bg-white/90 shadow-2xl shadow-blue-900/10 backdrop-blur-2xl dark:border-slate-700/50 dark:bg-slate-900/90 dark:shadow-black/50"
-                    :class="panelClass" role="dialog" aria-modal="true" :aria-labelledby="labelledBy">
+                    :class="panelClass" role="dialog" aria-modal="true" :aria-labelledby="labelledBy"
+                    @keydown="handleOverlayKeydown">
                     <slot />
                 </section>
             </div>
