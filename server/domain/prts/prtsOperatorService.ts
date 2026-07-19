@@ -22,6 +22,9 @@ const encodePathSegments = (path: string): string => {
     return pathSegments.map((pathSegment) => encodeURIComponent(pathSegment)).join('/')
 }
 
+/**
+ * 创建音频 url
+ */
 const createAudioUrl = (audioBasePath: string, audioFileName: string): string => {
     // PRTS 官方播放器会先将文件名转成小写 对象存储路径区分大小写
     const normalizedAudioFileName = audioFileName.toLowerCase()
@@ -40,6 +43,9 @@ const createSourcePageUrl = (voicePageTitle: string): string => {
     return new URL(`/w/${encodedPageTitle}`, PRTS_PAGE_ORIGIN).toString()
 }
 
+/**
+ * 从所有白名单干员立绘 url Map 构造干员列表 用于渲染
+ */
 export const getPrtsOperatorCatalog = async (): Promise<OperatorCatalogResponse> => {
     const portraitUrls = await fetchPrtsPortraitUrls(supportedOperators)
 
@@ -61,6 +67,9 @@ export const getPrtsOperatorCatalog = async (): Promise<OperatorCatalogResponse>
     }
 }
 
+/**
+ * 获取一个干员的包含语音在内的所有信息
+ */
 export const getPrtsOperatorVoices = async (
     operatorId: SupportedOperatorId,
 ): Promise<OperatorVoiceResponse> => {

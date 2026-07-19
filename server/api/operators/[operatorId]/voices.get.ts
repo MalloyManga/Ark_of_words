@@ -4,6 +4,7 @@ import { isSupportedOperatorId } from '../../../domain/prts/supportedOperators'
 const OPERATOR_VOICE_CACHE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 const OPERATOR_VOICE_CACHE_STALE_MAX_AGE_SECONDS = 60 * 60 * 24 * 90
 
+// 请求成功之后 返回一个干员的完整信息
 export default defineCachedEventHandler(async (event) => {
     const operatorId = getRouterParam(event, 'operatorId')
 

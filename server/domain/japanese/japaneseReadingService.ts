@@ -8,6 +8,8 @@ import type { JapaneseReadingUnit } from '#shared/types/japaneseReading'
 const require = createRequire(import.meta.url)
 const kuromojiDictionaryPath = resolve(dirname(require.resolve('kuromoji')), '../dict')
 
+// 这里保存初始化加载完成之后的 分词器 之后不再重复加载 
+// 服务器重启之后再次加载
 let tokenizerInitialization: Promise<Tokenizer<IpadicFeatures>> | undefined
 
 const initializeTokenizer = (): Promise<Tokenizer<IpadicFeatures>> => {

@@ -1,3 +1,4 @@
+<!-- 核心练习页面 -->
 <script setup lang="ts">
 import { isPracticeDifficulty, practiceDifficultyDetails } from '~/constants/practiceDifficulties'
 import type { PracticeDifficulty } from '~/constants/practiceDifficulties'
@@ -22,10 +23,12 @@ const selectedDifficulty = computed<PracticeDifficulty>(() => {
     const difficultyValue = Array.isArray(difficultyQuery) ? difficultyQuery[0] : difficultyQuery
     return isPracticeDifficulty(difficultyValue) ? difficultyValue : 'easy'
 })
+// 逐个从站点获取干员语音信息 并作缓存 仅作获取
 const {
     operatorVoiceResponseMap,
     loadOperatorVoiceSet,
 } = useOperatorVoiceData()
+// 获取到自由配置的干员语音信息
 const { selectedVoiceLines } = useCustomPracticeSelection()
 
 const requiredOperatorIds = computed(() => {
@@ -45,6 +48,8 @@ const isPracticeDataLoading = ref(
 )
 
 const selectedDifficultyDetail = computed(() => practiceDifficultyDetails[selectedDifficulty.value])
+
+// 获取到练习信息
 const {
     currentPracticeAudioPath,
     currentPracticeChineseText,
@@ -55,7 +60,7 @@ const {
     practiceQueueGroups,
     currentPracticeGroupNumber,
     totalPracticeGroupCount,
-    targetPracticeText,
+    targetPracticeText, // 最终练习的日文文本
     kanaHint,
     practiceReadingUnits,
     isPracticeCycleCompleted,
@@ -63,8 +68,8 @@ const {
     restartPracticeCycle,
     advanceToNextPracticeGroup,
 } = usePracticeLineSource({
-    poolId: selectedDifficulty,
-    difficultyLabel: computed(() => selectedDifficultyDetail.value.label),
+    poolId: selectedDifficulty, // 内部难度区分联合类型
+    difficultyLabel: computed(() => selectedDifficultyDetail.value.label), // label 仅用用作中文文本展示
 })
 
 const activeDisplayMode = computed<PracticeDisplayMode>(() => {
@@ -134,6 +139,7 @@ rollbackSubmittedCharacter = typingJudge.rollbackSubmittedCharacter
 warnRomajiInputMethod = typingJudge.warnRomajiInputMethod
 resetTypingProgress = typingJudge.resetTypingProgress
 
+// 工具按钮行为
 const {
     closePracticeInfoModal,
     playPracticeAudio,

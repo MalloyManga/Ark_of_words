@@ -2,12 +2,11 @@ import type { OperatorCatalogResponse } from '#shared/types/operatorApi'
 import { createOperatorDisplayItems } from '~/utils/operatorDisplayAdapter'
 
 /**
- * 管理干员浏览页的数据请求和会话内缓存
- *
- * 目录随页面获取 单个干员语音只在首次展开时按需请求
- * 相同干员在当前页面生命周期内不会重复请求
+ * 前端请求 获取干员列表完整信息 干员页面数据总入口
+ * 干员页面挂载时获取干员目录 单个干员只在首次展开时获取语音信息
  */
 export const useOperatorBrowserData = () => {
+    // 仅仅获取到干员目录信息
     const operatorCatalogRequest = useFetch<OperatorCatalogResponse>(
         '/api/operators',
         { key: 'supported-operator-catalog-with-placement' },
@@ -15,7 +14,7 @@ export const useOperatorBrowserData = () => {
     const {
         operatorVoiceResponseMap,
         operatorVoiceErrorMap,
-        loadOperatorVoices,
+        loadOperatorVoices, // 发送请求获取到一位干员的完整语音信息 仅在点击展开时触发并获取
         isOperatorVoicePending,
     } = useOperatorVoiceData()
 

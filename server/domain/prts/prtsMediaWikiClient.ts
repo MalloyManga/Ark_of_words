@@ -10,6 +10,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === 'object' && value !== null
 }
 
+/**
+ * 获取 pages 核心信息页面
+ */
 const getResponsePages = (rawResponse: unknown): readonly unknown[] => {
     if (!isRecord(rawResponse) || !isRecord(rawResponse.query) || !Array.isArray(rawResponse.query.pages)) {
         throw new Error('PRTS MediaWiki API 缺少 query.pages')
@@ -18,6 +21,12 @@ const getResponsePages = (rawResponse: unknown): readonly unknown[] => {
     return rawResponse.query.pages
 }
 
+/**
+ * 格式化拿到的文件名称
+ * 删除 "文件：" 前缀
+ * 删除下划线还有空格
+ * 转换小写
+ */
 const normalizeMediaWikiFileTitle = (title: string): string => {
     return title
         .replace(/^(?:File|文件):/iu, '')
@@ -41,6 +50,9 @@ const assertPrtsMediaUrl = (value: unknown, fileTitle: string): string => {
     return mediaUrl.toString()
 }
 
+/**
+ * 向 PRTS 发送请求
+ */
 const requestPrtsApi = async (query: Record<string, string | number>): Promise<unknown> => {
     return await $fetch<unknown>(PRTS_MEDIAWIKI_API_URL, {
         query,
@@ -52,6 +64,9 @@ const requestPrtsApi = async (query: Record<string, string | number>): Promise<u
     })
 }
 
+/**
+ * 构造 获取到干员语音音频元数据 的请求
+ */
 export const fetchPrtsVoicePageRawData = async (voicePageTitle: string): Promise<unknown> => {
     return await requestPrtsApi({
         action: 'query',
@@ -65,6 +80,9 @@ export const fetchPrtsVoicePageRawData = async (voicePageTitle: string): Promise
     })
 }
 
+/**
+ * 向 PRTS 请求获取到白名单干员的立绘信息
+ */
 export const fetchPrtsPortraitUrls = async (
     operators: readonly SupportedOperatorConfig[],
 ): Promise<ReadonlyMap<SupportedOperatorId, string>> => {

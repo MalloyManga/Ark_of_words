@@ -3,6 +3,7 @@ import { getPrtsOperatorCatalog } from '../../domain/prts/prtsOperatorService'
 const OPERATOR_CACHE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 const OPERATOR_CACHE_STALE_MAX_AGE_SECONDS = 60 * 60 * 24 * 90
 
+// 从我方服务器 请求获取干员列表 与每一位干员的基本信息 并做缓存
 export default defineCachedEventHandler(async () => {
     try {
         return await getPrtsOperatorCatalog()

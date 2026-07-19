@@ -7,17 +7,19 @@ const getRequestErrorMessage = (error: unknown): string => {
 }
 
 /**
- * 管理干员语音的会话缓存和请求状态
- *
- * 单个加载供浏览页按需展开
- * 顺序批量加载供标准难度池使用 避免冷缓存时同时冲击 PRTS 上游
+ * 加载一个干员的语音
  */
 export const useOperatorVoiceData = () => {
+    // 从已经缓存的干员语音信息里面获取
     const operatorVoiceResponseMap = useOperatorVoiceResponseCache()
     const operatorVoiceErrorMap = ref<OperatorVoiceErrorMap>({})
     const pendingOperatorIds = ref<ReadonlySet<SupportedOperatorId>>(new Set<SupportedOperatorId>())
 
+    /**
+     * 加载干员语音 从 server/api 我方服务器获取
+     */
     const loadOperatorVoices = async (operatorId: SupportedOperatorId): Promise<void> => {
+        // 缓存当中已经存在 或者 已经正在请求这个干员的信息 就直接返回不再请求
         if (operatorVoiceResponseMap.value[operatorId] || pendingOperatorIds.value.has(operatorId)) {
             return
         }
@@ -29,6 +31,7 @@ export const useOperatorVoiceData = () => {
                 `/api/operators/${encodeURIComponent(operatorId)}/voices`,
             )
 
+            // 请求完成之后写入缓存
             operatorVoiceResponseMap.value = {
                 ...operatorVoiceResponseMap.value,
                 [operatorId]: operatorVoiceResponse,
@@ -49,6 +52,9 @@ export const useOperatorVoiceData = () => {
         }
     }
 
+    /**
+     * 加载干员语音 Set
+     */
     const loadOperatorVoiceSet = async (operatorIds: readonly SupportedOperatorId[]): Promise<void> => {
         for (const operatorId of operatorIds) {
             await loadOperatorVoices(operatorId)

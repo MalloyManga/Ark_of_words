@@ -42,7 +42,7 @@ export interface PrtsVoiceLine {
 
 /**
  * 长期缓存和练习页消费的干员语音数据
- * 皮肤变体后续会作为独立 operatorName 进入缓存 而不是挂在同一对象里
+ * 一个干员语音的完整数据接口
  */
 export interface PrtsOperatorVoiceData {
     operatorName: string

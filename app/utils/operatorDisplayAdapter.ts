@@ -9,6 +9,11 @@ import type { OperatorDisplayItem, OperatorPortraitCrop } from '~/types/operator
 
 type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
 
+// DTO 后端字段适配
+
+/**
+ * 干预立绘位置 fallback
+ */
 const fallbackOperatorPortraitPlacement: OperatorPortraitPlacement = {
     widthPercent: 505,
     leftPercent: -202,
@@ -19,6 +24,7 @@ const fallbackOperatorPortraitPlacement: OperatorPortraitPlacement = {
 
 /**
  * 兼容不含立绘配置的旧缓存 并阻止不完整配置破坏整个干员页渲染
+ * 检测传入的 placement 信息是否有效 无效则使用 fallback 信息
  */
 const resolveOperatorPortraitPlacement = (
     placement: OperatorPortraitPlacement | undefined,
@@ -37,6 +43,9 @@ const resolveOperatorPortraitPlacement = (
     return fallbackOperatorPortraitPlacement
 }
 
+/**
+ * 通过立绘位置信息接口创建具体 css 对象
+ */
 const createOperatorPortraitCrop = (
     placement: OperatorPortraitPlacement | undefined,
 ): OperatorPortraitCrop => {
@@ -53,10 +62,8 @@ const createOperatorPortraitCrop = (
 }
 
 /**
- * 将稳定 API DTO 转成现有纯展示组件需要的模型
- *
- * 页面组件不感知请求状态和 PRTS 字段细节
- * 后续增加职业图标或独立裁切参数时只修改这一层
+ * 创建一个干员完整渲染出来所需要的所有基本信息
+ * 把接口数据整理成页面组件能直接渲染的数据
  */
 export const createOperatorDisplayItems = (
     catalogItems: readonly OperatorCatalogItem[],

@@ -1,4 +1,3 @@
-import type { ComputedRef, MaybeRefOrGetter, Ref } from 'vue'
 import type { PracticePool, PracticePoolItem } from '~/constants/practicePools'
 
 interface PracticeSessionQueueOptions {

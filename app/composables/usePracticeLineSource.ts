@@ -120,6 +120,9 @@ export const usePracticeLineSource = ({ poolId, difficultyLabel }: PracticeLineS
     const currentPracticeOperatorName = computed(() => currentPracticePoolItem.value?.operator.name ?? '')
     const currentPracticeAudioPath = computed(() => currentPracticePoolItem.value?.audioUrl ?? '')
     const currentPracticeChineseText = computed(() => currentPracticeLine.value?.chineseText ?? '')
+    /**
+     * 最终练习的日文文本
+     */
     const targetPracticeText = computed(() => currentPracticeLine.value?.japaneseText ?? '')
     const currentPracticeLineTitle = computed(() => currentPracticeLine.value?.title ?? '暂无练习题目')
     const kanaHint = computed(() => createPlaceholderKanaHint(targetPracticeText.value))

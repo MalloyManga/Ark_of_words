@@ -8,12 +8,18 @@ import type {
     SupportedOperatorId,
 } from '#shared/types/operatorApi'
 
+/**
+ * 前端展示用语音条目名称
+ */
 export interface PracticeOperatorIdentity {
     id: string
     name: string
     voiceKey: string
 }
 
+/**
+ * 一个练习池的干员语音信息
+ */
 export interface PracticePoolItem {
     id: string
     operator: PracticeOperatorIdentity
@@ -28,8 +34,19 @@ interface CustomPracticePoolSelection {
     voiceLineId: string
 }
 
+/**
+ * 练习池接口
+ */
+export interface PracticePool {
+    id: PracticePoolId
+    items: readonly PracticePoolItem[]
+}
+
 type OperatorVoiceResponseMap = Readonly<Partial<Record<SupportedOperatorId, OperatorVoiceResponse>>>
 
+/**
+ * 从站点语音Response当中提取出单条练习item
+ */
 const createPracticePoolItemFromOperatorVoiceResponse = (
     operatorVoiceResponse: OperatorVoiceResponse,
     voiceLine: OperatorVoiceLineResponse,
@@ -48,6 +65,9 @@ const createPracticePoolItemFromOperatorVoiceResponse = (
     }
 }
 
+/**
+ * 根据 自选语音信息 以及 从站点得到的语音Response 得到一个自建练习池
+ */
 export const createCustomPracticePool = (
     selections: readonly CustomPracticePoolSelection[],
     operatorVoiceResponseMap: OperatorVoiceResponseMap,
@@ -64,11 +84,6 @@ export const createCustomPracticePool = (
     })
 
     return { id: 'custom', items }
-}
-
-export interface PracticePool {
-    id: PracticePoolId
-    items: readonly PracticePoolItem[]
 }
 
 const createOperatorIdentity = (operatorVoiceData: PrtsOperatorVoiceData): PracticeOperatorIdentity => {
