@@ -45,7 +45,7 @@ const emit = defineEmits<{
                     :src="operatorFrameFront" alt="" draggable="false">
 
                 <img class="pointer-events-none absolute left-[6%] top-[1%] z-30 w-[22%] select-none drop-shadow"
-                    :src="operator.professionIconSrc" alt="" draggable="false">
+                    :src="operator.professionIconSrc" :alt="`${operator.profession}职业图标`" draggable="false">
 
                 <span
                     class="pointer-events-none absolute bottom-[3%] right-[7%] z-30 text-right font-bold leading-none text-white text-[clamp(10px,1.2vw,16px)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">

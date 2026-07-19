@@ -39,7 +39,6 @@ interface PracticeTextDisplayProps {
     romajiPracticeUnitDisplays: readonly PracticeRomajiUnitDisplay[]
     kanaPracticeUnitDisplays: readonly PracticeKanaUnitDisplay[]
     fallbackDisplayCharacterChunks: readonly DisplayCharacterChunk[]
-    kanaHint: string
     shouldShowKanaHint: boolean
     shouldShowOriginalText: boolean
     isCursorAfterAllCharacters: boolean
@@ -52,7 +51,6 @@ const {
     romajiPracticeUnitDisplays,
     kanaPracticeUnitDisplays,
     fallbackDisplayCharacterChunks,
-    kanaHint,
     shouldShowKanaHint,
     shouldShowOriginalText,
     isCursorAfterAllCharacters,
@@ -75,16 +73,6 @@ const shouldShowKanaUnitKanaText = (unitDisplay: PracticeKanaUnitDisplay) => {
 </script>
 
 <template>
-    <div class="flex min-h-8 w-full items-center justify-center">
-        <p v-show="!isRomajiModeEnabled && shouldShowKanaHint && kanaPracticeUnitDisplays.length === 0"
-            class="font-[Yu_Gothic] text-[15px] font-medium tracking-[0.2em] text-ink-soft/60">
-            {{ kanaHint }}
-        </p>
-        <p v-show="isRomajiModeEnabled || !shouldShowKanaHint || kanaPracticeUnitDisplays.length > 0" class="sr-only">
-            {{ kanaHint }}
-        </p>
-    </div>
-
     <div class="flex min-h-36 w-full max-w-5xl flex-col items-center justify-center gap-y-3 text-ink" :class="isRomajiModeEnabled
         ? 'font-fredoka text-2xl leading-[1.18] sm:text-3xl lg:text-[32px]'
         : 'text-4xl leading-[1.28]'">

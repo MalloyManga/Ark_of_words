@@ -60,6 +60,7 @@ export const getPrtsOperatorCatalog = async (): Promise<OperatorCatalogResponse>
             return {
                 id: operator.id,
                 displayName: operator.displayName,
+                profession: operator.profession,
                 portraitUrl,
                 portraitPlacement: operator.portraitPlacement,
             }

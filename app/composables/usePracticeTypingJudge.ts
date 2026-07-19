@@ -418,7 +418,6 @@ export const usePracticeTypingJudge = ({
     })
 
     const warnRomajiInputMethod = () => {
-        console.log(romajiInputWarningMessage)
         onRomajiInputMethodWarning?.()
     }
 

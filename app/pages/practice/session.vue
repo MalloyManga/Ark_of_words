@@ -6,7 +6,6 @@ import { supportedOperatorIds } from '#shared/types/operatorApi'
 import { practiceDisplayModes } from '~/constants/practiceDisplayModes'
 import type { PracticeDisplayMode } from '~/constants/practiceDisplayModes'
 import type { PracticeAudioController } from '~/types/practiceAudio'
-import mockPracticeAudioUrl from '~/data/编入队伍.wav?url'
 
 const route = useRoute()
 
@@ -61,7 +60,6 @@ const {
     currentPracticeGroupNumber,
     totalPracticeGroupCount,
     targetPracticeText, // 最终练习的日文文本
-    kanaHint,
     practiceReadingUnits,
     isPracticeCycleCompleted,
     advanceToNextItem,
@@ -120,7 +118,7 @@ const typingJudge = usePracticeTypingJudge({
     },
 })
 const practiceAudioSourceUrl = computed(() => {
-    return currentPracticeAudioPath.value || mockPracticeAudioUrl
+    return currentPracticeAudioPath.value
 })
 
 const {
@@ -223,7 +221,7 @@ const restartCompletedPractice = async (): Promise<void> => {
 
 /**
  * 标准练习顺序请求六位干员 自由配置只补齐用户实际选中的干员
- * 加载结束后再播放首题 避免缓存准备期间误播 mock 音频
+ * 加载结束后再播放首题 避免数据准备期间提前触发播放
  */
 const loadPracticeData = async (): Promise<void> => {
     if (selectedDifficulty.value === 'custom' && requiredOperatorIds.value.length === 0) {
@@ -295,7 +293,7 @@ onBeforeUnmount(() => {
                 <PracticeTextDisplay :is-romaji-mode-enabled="isRomajiModeEnabled"
                     :romaji-practice-unit-displays="romajiPracticeUnitDisplays"
                     :kana-practice-unit-displays="kanaPracticeUnitDisplays"
-                    :fallback-display-character-chunks="fallbackDisplayCharacterChunks" :kana-hint="kanaHint"
+                    :fallback-display-character-chunks="fallbackDisplayCharacterChunks"
                     :should-show-kana-hint="shouldShowKanaHint" :should-show-original-text="shouldShowOriginalText"
                     :is-cursor-after-all-characters="isCursorAfterAllCharacters"
                     :get-display-character-text-class="getDisplayCharacterTextClass"

@@ -1,6 +1,6 @@
 import { getPracticeDifficultyByVoiceTitle } from '~/constants/practiceDifficulties'
 import type { PracticePoolId } from '~/constants/practiceDifficulties'
-import type { PrtsOperatorVoiceData, PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
+import type { PrtsVoiceLine } from '#shared/utils/prtsVoiceDataExtractor'
 import type { JapaneseReadingUnit } from '#shared/types/japaneseReading'
 import type {
     OperatorVoiceLineResponse,
@@ -86,36 +86,6 @@ export const createCustomPracticePool = (
     return { id: 'custom', items }
 }
 
-const createOperatorIdentity = (operatorVoiceData: PrtsOperatorVoiceData): PracticeOperatorIdentity => {
-    return {
-        id: operatorVoiceData.voiceKey,
-        name: operatorVoiceData.operatorName,
-        voiceKey: operatorVoiceData.voiceKey,
-    }
-}
-
-const createPracticePoolItem = (
-    operatorVoiceData: PrtsOperatorVoiceData,
-    voiceLine: PrtsVoiceLine,
-): PracticePoolItem => {
-    const operator = createOperatorIdentity(operatorVoiceData)
-
-    return {
-        id: `${operator.id}:${voiceLine.voiceNumber}`,
-        operator,
-        voiceNumber: voiceLine.voiceNumber,
-        voiceLine,
-    }
-}
-
-const createPracticePoolItems = (
-    operatorVoiceDataList: readonly PrtsOperatorVoiceData[],
-): readonly PracticePoolItem[] => {
-    return operatorVoiceDataList.flatMap((operatorVoiceData) => {
-        return operatorVoiceData.lines.map((voiceLine) => createPracticePoolItem(operatorVoiceData, voiceLine))
-    })
-}
-
 const createStandardDifficultyPoolItems = (
     poolId: Exclude<PracticePoolId, 'custom'>,
     allPoolItems: readonly PracticePoolItem[],
@@ -154,14 +124,6 @@ export const createPracticePoolsFromOperatorVoiceResponses = (
             return createPracticePoolItemFromOperatorVoiceResponse(operatorVoiceResponse, voiceLine)
         })
     })
-
-    return createPracticePoolsFromItems(allPoolItems)
-}
-
-export const createPracticePoolsFromOperatorVoiceData = (
-    operatorVoiceDataList: readonly PrtsOperatorVoiceData[],
-): readonly PracticePool[] => {
-    const allPoolItems = createPracticePoolItems(operatorVoiceDataList)
 
     return createPracticePoolsFromItems(allPoolItems)
 }

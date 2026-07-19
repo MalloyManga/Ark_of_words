@@ -9,8 +9,15 @@ export const useOperatorBrowserData = () => {
     // 仅仅获取到干员目录信息
     const operatorCatalogRequest = useFetch<OperatorCatalogResponse>(
         '/api/operators',
-        { key: 'supported-operator-catalog-with-placement' },
+        { key: 'supported-operator-catalog-with-profession-v2' },
     )
+
+    // Nuxt 会按 useFetch key 共享数据 开发时重新进入页面需要主动取得最新立绘配置
+    if (import.meta.dev) {
+        onMounted(() => {
+            void operatorCatalogRequest.refresh()
+        })
+    }
     const {
         operatorVoiceResponseMap,
         operatorVoiceErrorMap,

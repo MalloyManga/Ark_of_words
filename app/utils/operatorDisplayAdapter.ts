@@ -1,4 +1,4 @@
-import { casterProfessionIcon } from '~/constants/operatorDisplayAssets'
+import { professionIconByProfession } from '~/constants/operatorDisplayAssets'
 import type {
     OperatorCatalogItem,
     OperatorPortraitPlacement,
@@ -72,9 +72,10 @@ export const createOperatorDisplayItems = (
     return catalogItems.map((catalogItem) => ({
         id: catalogItem.id,
         displayName: catalogItem.displayName,
+        profession: catalogItem.profession,
         portrait: catalogItem.portraitUrl,
         portraitCrop: createOperatorPortraitCrop(catalogItem.portraitPlacement),
-        professionIconSrc: casterProfessionIcon,
+        professionIconSrc: professionIconByProfession[catalogItem.profession],
         voiceLines: operatorVoiceResponseMap[catalogItem.id]?.lines ?? [],
     }))
 }

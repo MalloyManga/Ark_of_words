@@ -14,6 +14,19 @@ export const supportedOperatorIds = [
 
 export type SupportedOperatorId = typeof supportedOperatorIds[number]
 
+export const operatorProfessions = [
+    '先锋',
+    '近卫',
+    '重装',
+    '狙击',
+    '术士',
+    '医疗',
+    '辅助',
+    '特种',
+] as const
+
+export type OperatorProfession = typeof operatorProfessions[number]
+
 export const isSupportedOperatorId = (value: string): value is SupportedOperatorId => {
     return (supportedOperatorIds as readonly string[]).includes(value)
 }
@@ -35,6 +48,7 @@ export interface OperatorPortraitPlacement {
 export interface OperatorCatalogItem {
     id: SupportedOperatorId
     displayName: string
+    profession: OperatorProfession
     portraitUrl: string
     portraitPlacement?: OperatorPortraitPlacement
 }

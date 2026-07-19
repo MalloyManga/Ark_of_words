@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'vue'
+import type { OperatorProfession } from '#shared/types/operatorApi'
 
 export interface OperatorDisplayVoiceLine {
     id: string
@@ -17,6 +18,7 @@ export interface OperatorPortraitCrop extends CSSProperties {
 export interface OperatorDisplayItem {
     id: string
     displayName: string
+    profession: OperatorProfession
     portrait: string
     portraitCrop: OperatorPortraitCrop
     professionIconSrc: string
