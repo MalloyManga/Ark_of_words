@@ -3,6 +3,15 @@
 
     reverse_proxy app:3000
 
+    log {
+        output file /data/access.log {
+            roll_size 10MiB
+            roll_keep 5
+            roll_keep_for 168h
+        }
+        format json
+    }
+
     header {
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
