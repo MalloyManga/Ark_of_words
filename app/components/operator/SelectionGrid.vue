@@ -28,7 +28,7 @@ const emit = defineEmits<{
         <div
             class="grid grid-cols-3 gap-x-3 gap-y-4 sm:grid-cols-5 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 transition-all duration-300">
             <button v-for="operator in operators" :key="operator.id" type="button"
-                class="group relative aspect-289/594 focus-visible:outline-none transition-transform duration-300 hover:-translate-y-1"
+                class="group overflow-hidden relative aspect-289/594 focus-visible:outline-none transition-transform duration-300 hover:-translate-y-1"
                 :aria-pressed="activeOperatorId === operator.id" :aria-label="operator.displayName"
                 @click="emit('toggleOperator', operator.id)">
                 <span
