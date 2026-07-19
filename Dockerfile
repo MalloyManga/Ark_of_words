@@ -8,7 +8,9 @@ RUN npm ci
 FROM dependencies AS build
 COPY . .
 RUN npm run build
-RUN test -d .output/server/node_modules/kuromoji/dict
+RUN mkdir -p .output/server/node_modules/kuromoji \
+    && cp -R node_modules/kuromoji/dict .output/server/node_modules/kuromoji/dict \
+    && test -d .output/server/node_modules/kuromoji/dict
 
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production \
